@@ -158,15 +158,17 @@ flowchart LR
 ## Progress Tracker
 
 **Phase 1 — SRE Foundations**
-- [ ] **Day 01** — What is SRE · [day-01-what-is-sre](day-01-what-is-sre/README.md)
-- [ ] **Day 02** — SLIs, SLOs & error budgets · [day-02-sli-slo-error-budget](day-02-sli-slo-error-budget/README.md)
+- [x] **Day 01** — What is SRE · [day-01-what-is-sre](day-01-what-is-sre/README.md) ✅ reading done (Intro to SRE module)
+- [x] **Day 02** — SLIs, SLOs & error budgets · [day-02-sli-slo-error-budget](day-02-sli-slo-error-budget/README.md) ✅ reading + exercise done
 - [ ] **Day 03** — Toil, automation & the SRE mindset
 - [ ] **Day 04** — Azure setup, cost guardrails, your lab subscription
 
+> 📖 **Reading ahead:** *Manage site reliability* module done early — it feeds Days 06, 07, 26, 27.
+
 **Phase 2 — Observability**
 - [ ] **Day 05** — Azure Monitor: metrics & VM insights
-- [ ] **Day 06** — Application Insights: instrument a live app
-- [ ] **Day 07** — KQL, Log Analytics & SLO dashboard
+- [ ] **Day 06** — Application Insights: instrument a live app *(reading ✅)*
+- [ ] **Day 07** — KQL, Log Analytics & SLO dashboard *(alert-tuning reading ✅)*
 
 **Phase 3 — DevOps & Delivery**
 - [ ] **Day 08** — API design + API Management gateway
@@ -194,7 +196,7 @@ flowchart LR
 - [ ] **Day 24** — Agentic AI in the SDLC (Copilot/agents in your pipeline)
 - [ ] **Day 25** — AI quality evaluation for generated code/tests
 - [ ] **Day 26** — Incident management & on-call simulation
-- [ ] **Day 27** — Blameless postmortems (write a real one)
+- [ ] **Day 27** — Blameless postmortems (write a real one) *(reading ✅)*
 - [ ] **Day 28** — Game day: inject failure, detect, respond, write it up
 - [ ] **Day 29** — Leadership: mentoring, estimation, executive communication
 - [ ] **Day 30** — 🏆 Capstone: the full system + your interview story bank

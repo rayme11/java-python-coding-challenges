@@ -33,7 +33,7 @@ the gap between your SLO and 100% is your **error budget** — permission to tak
 SLO = 99.9% over 30 days
 Budget = 0.1% of requests (or time)
 If the service handles 43.2M requests/30d → budget = 43,200 failed requests
-Equivalent: 99.9% monthly ≈ 43.8 minutes of downtime allowed
+Equivalent: 99.9% monthly ≈ 43.2 minutes of downtime allowed
 ```
 
 **Burn rate** = how fast you're consuming the budget. Burn rate > 1 sustained
@@ -74,7 +74,7 @@ python3 exercise_error_budget.py
 
 - [ ] Read the units + skimmed Well-Architected metrics doc
 - [ ] All TODOs in exercise_error_budget.py complete and tests pass
-- [ ] Can recite: 99.9% monthly ≈ 43.8 min downtime; 99.99% ≈ 4.4 min
+- [ ] Can recite: 99.9% monthly ≈ 43.2 min downtime; 99.99% ≈ 4.3 min
 - [ ] Answered drill questions out loud
 - [ ] Check Day 02 off in [../README.md](../README.md)
 
