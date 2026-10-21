@@ -1,0 +1,5 @@
+# Core dependencies for the daily practice program.
+# Keep this lean — interview prep should mostly use the standard library.
+
+# Testing (used from Day 05 onward to validate exercises)
+pytest>=8.0
