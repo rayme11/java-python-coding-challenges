@@ -1,0 +1,41 @@
+name: Enterprise QE CI & Quality Gates
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17 / 21
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Compile Java Enterprise QE Code
+      run: |
+        mkdir -p bin
+        javac -d bin ai/phase-1-ai-driven-test-automation/java/enterprise/qe/QualityEngine.java ai/phase-1-ai-driven-test-automation/java/enterprise/qe/QualityEngineTest.java
+
+    - name: Run Java Quality Engine Tests
+      run: |
+        java -cp bin enterprise.qe.QualityEngineTest
+
+    - name: Install Python Dependencies & Run Smoke Tests
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -d ai/phase-1-ai-driven-test-automation/python ]; then pytest ai/phase-1-ai-driven-test-automation/python; fi
