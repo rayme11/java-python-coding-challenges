@@ -14,7 +14,7 @@ This training path prepares you for senior Quality Engineering leadership roles 
 | Phase | Title | Focus | Languages |
 |-------|-------|-------|-----------|
 | Phase 1 | [AI-Driven Test Automation & Modern Tooling](ai/phase-1-ai-driven-test-automation/README.md) | Foundations, quality gates, CI/CD | Java, Python |
-| Phase 2 | [Scalable Web & API Test Engineering](ai/phase-2-scalable-web-api-test-engineering/README.md) | Selenium, Playwright, API testing, BDD | Java, Python |
+| Phase 2 | [Scalable Web & API Test Engineering](ai/phase-2-scalable-web-api-test-engineering/README.md) | **Real Selenium & Playwright, Heroku App Testing** | Java, Python |
 | Phase 3 | [DevOps, CI/CD & Governance Integration](ai/phase-3-devops-ci-cd-governance/README.md) | Pipeline quality gates, release management, root cause analysis | Java, Python |
 | Phase 4 | [Executive QE Leadership & Culture Building](ai/phase-4-executive-qe-leadership/README.md) | Automation-first culture, team coaching, stakeholder communication | Conceptual |
 
@@ -58,7 +58,7 @@ java -cp bin enterprise.qe.QualityEngineTest
 - [ ] Add compile and test steps
 - [ ] Add Python smoke test step
 
-**File:** [`qe-ci.yml`](ai/phase-1-ai-driven-test-automation/github/workflows/qe-ci.yml)
+**File:** [`qe-ci.yml`](.github/workflows/qe-ci.yml)
 
 ---
 
@@ -75,13 +75,13 @@ java -cp bin enterprise.qe.QualityEngineTest
 
 **Goal:** Build enterprise-grade web and API test automation using Selenium, Playwright, and BDD frameworks.
 
-### Lesson 2.1: Web Automation Foundations (Java/Python)
+### Lesson 2.1: Web Automation Foundations (Real Selenium & Playwright)
 - [ ] Selenium WebDriver basics
 - [ ] Playwright vs Selenium comparison
 - [ ] Page Object Model (POM) pattern
 - [ ] Locator strategies and wait mechanisms
 
-**Materials:** [`phase-2-scalable-web-api-test-engineering/README.md`](./phase-2-scalable-web-api-test-engineering/README.md)
+**Materials:** [`phase-2-scalable-web-api-test-engineering/README.md`](ai/phase-2-scalable-web-api-test-engineering/README.md)
 
 ---
 
@@ -119,14 +119,14 @@ java -cp bin enterprise.qe.QualityEngineTest
 - [ ] Defect triage workflows
 - [ ] Release readiness assessment
 
-**Materials:** [`phase-3-devops-ci-cd-governance/README.md`](./phase-3-devops-ci-cd-governance/README.md)
+**Materials:** [`phase-3-devops-ci-cd-governance/README.md`](ai/phase-3-devops-ci-cd-governance/README.md)
 
 ---
 
 ### Lesson 3.2: Environment & Test Data Management
 - [ ] Cloud/virtualization test environments (Azure/AWS)
 - [ ] Test data planning and masking
-- [ ] Environment readiness checks
+- [ ] Environment provisioning (Terraform, ARM templates)
 
 ---
 
@@ -146,7 +146,7 @@ java -cp bin enterprise.qe.QualityEngineTest
 - [ ] Performance management
 - [ ] Career development planning
 
-**Materials:** [`phase-4-executive-qe-leadership/README.md`](./phase-4-executive-qe-leadership/README.md)
+**Materials:** [`phase-4-executive-qe-leadership/README.md`](ai/phase-4-executive-qe-leadership/README.md)
 
 ---
 

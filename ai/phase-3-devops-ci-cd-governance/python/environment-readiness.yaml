@@ -1,0 +1,16 @@
+environment: staging
+services:
+  - name: api-service
+    url: https://staging-api.example.com
+    status: required
+  - name: database
+    url: jdbc:postgresql://staging-db.example.com:5432
+    status: required
+testData:
+  users: 1000
+  products: 500
+  orders: 2000
+qualityGates:
+  minCoverage: 80
+  maxResponseTime: 2000
+  allowedCriticalBugs: 0
