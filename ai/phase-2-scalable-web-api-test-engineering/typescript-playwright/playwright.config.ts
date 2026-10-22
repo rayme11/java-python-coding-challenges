@@ -16,7 +16,13 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], headless: false },
+      use: { 
+        ...devices['Desktop Chrome'], 
+        headless: process.env.HEADLESS !== 'false',
+        launchOptions: {
+          args: ['--no-sandbox', '--disable-dev-shm-usage']
+        }
+      },
     },
   ],
 });

@@ -17,7 +17,7 @@
   "author": "Enterprise QE Team",
   "license": "MIT",
   "devDependencies": {
-    "@playwright/test": "^1.48.0",
+    "@playwright/test": "^1.49.1",
     "@types/node": "^20.11.0",
     "typescript": "^5.3.3"
   }
