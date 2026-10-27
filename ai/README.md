@@ -15,7 +15,7 @@ This training path prepares you for senior Quality Engineering leadership roles 
 |-------|-------|-------|-----------|
 | Phase 1 | [AI-Driven Test Automation & Modern Tooling](ai/phase-1-ai-driven-test-automation/README.md) | Foundations, quality gates, CI/CD | Java, Python |
 | Phase 2 | [Scalable Web & API Test Engineering](ai/phase-2-scalable-web-api-test-engineering/README.md) | **Real Selenium & Playwright, Heroku App Testing** | Java, Python |
-| Phase 3 | [DevOps, CI/CD & Governance Integration](ai/phase-3-devops-ci-cd-governance/README.md) | Pipeline quality gates, release management, root cause analysis | Java, Python |
+| Phase 3 | [DevOps, CI/CD & Governance Integration](ai/phase-3-devops-ci-cd-governance/README.md) | Pipeline quality gates, release management, **Advanced AI Governance (LLM-as-a-Judge, Trust Architecture)** | Java, Python |
 | Phase 4 | [Executive QE Leadership & Culture Building](ai/phase-4-executive-qe-leadership/README.md) | Automation-first culture, team coaching, stakeholder communication | Conceptual |
 
 ---
