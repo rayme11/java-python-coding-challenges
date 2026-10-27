@@ -1,15 +1,31 @@
-import json
 import os
+import json
+from dotenv import load_dotenv
+from openai import AzureOpenAI
+
+load_dotenv()
 
 class AzureLLMJudge:
     """
-    Implements LLM-as-a-Judge and Trust Architecture audit logging for QA governance.
+    Implements LLM-as-a-Judge and Trust Architecture audit logging using Azure OpenAI Service.
     """
-    def __init__(self, model_name: str = "gpt-4o-mini"):
-        self.model_name = model_name
+    def __init__(self):
+        self.api_key = os.getenv("AZURE_OPENAI_API_KEY")
+        self.endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        self.deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4o-mini")
+        self.api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
+
+        if self.api_key and self.endpoint:
+            self.client = AzureOpenAI(
+                api_key=self.api_key,
+                api_version=self.api_version,
+                azure_endpoint=self.endpoint
+            )
+        else:
+            self.client = None
 
     def evaluate_test_output(self, test_name: str, system_output: str, risk_rubric: dict) -> dict:
-        print(f"[Azure LLM-as-a-Judge ({self.model_name})] Evaluating '{test_name}'...")
+        print(f"[Azure LLM-as-a-Judge] Evaluating '{test_name}' against risk rubric...")
         
         score = 100
         violations = []
@@ -24,10 +40,23 @@ class AzureLLMJudge:
 
         passed = score >= risk_rubric.get("passing_threshold", 75)
 
-        # Trust Architecture Audit Record
+        if self.client and passed:
+            # Optional deep semantic check via Azure OpenAI
+            prompt = f"Evaluate if this test output meets quality standards: '{system_output}'. Reply with 'PASS' or 'FAIL' and short reason."
+            try:
+                res = self.client.chat.completions.create(
+                    model=self.deployment,
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=50
+                )
+                ai_verdict = res.choices[0].message.content
+                violations.append(f"Azure OpenAI Judge verdict: {ai_verdict}")
+            except Exception as e:
+                violations.append(f"AI evaluation notice: {str(e)}")
+
         audit_record = {
             "test_case": test_name,
-            "evaluator_model": self.model_name,
+            "evaluator_model": self.deployment,
             "system_output_sample": system_output[:150],
             "risk_rubric_applied": risk_rubric,
             "calculated_score": score,
