@@ -27,6 +27,27 @@ As an AI Quality Engineering Leader, your objective is to build a robust, defens
 
 ---
 
+## 🚀 Step-by-Step Implementation Guide
+
+### Step 1: Environment Setup
+1. Ensure Python 3.10+ is installed and accessible (e.g., `c:\python315\python.exe`).
+2. Navigate to the `azure-ai-qe-lab` directory:
+   ```powershell
+   cd azure-ai-qe-lab
+   ```
+3. Install Python dependencies and Playwright browsers (using your specific Python executable):
+   ```powershell
+   c:\python315\python.exe -m pip install -r requirements.txt
+   c:\python315\python.exe -m playwright install chromium
+   ```
+4. Set up environment variables for Azure OpenAI (optional for local testing; mock fallback included) by copying `.env.example` to `.env`:
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+   Populate your `.env` with your Azure credentials.
+
+---
+
 ## 2. Module 1: Step-by-Step Azure AI Portal Setup
 
 Follow these exact steps in the Azure Portal to provision your low-cost AI backend:
@@ -55,18 +76,13 @@ Follow these exact steps in the Azure Portal to provision your low-cost AI backe
 
 In enterprise environments, hardcoding API keys is a critical security violation. We use `.env` files managed by `python-dotenv`.
 
-1. Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-2. Populate your `.env` with your Azure credentials:
-   ```env
-   AZURE_OPENAI_API_KEY="your_actual_azure_openai_key"
-   AZURE_OPENAI_ENDPOINT="https://your-resource-name.openai.azure.com/"
-   AZURE_OPENAI_DEPLOYMENT_NAME="gpt-4o-mini"
-   AZURE_OPENAI_API_VERSION="2024-02-01"
-   LOCAL_MCP_SERVER_PORT=8000
-   ```
+```env
+AZURE_OPENAI_API_KEY="your_actual_azure_openai_key"
+AZURE_OPENAI_ENDPOINT="https://your-resource-name.openai.azure.com/"
+AZURE_OPENAI_DEPLOYMENT_NAME="gpt-4o-mini"
+AZURE_OPENAI_API_VERSION="2024-02-01"
+LOCAL_MCP_SERVER_PORT=8000
+```
 
 ---
 
@@ -76,7 +92,7 @@ The **Model Context Protocol (MCP)** enables LLM agents to securely query intern
 
 1. **Launch the Official MCP Inspector UI:**
    ```powershell
-   npx.cmd @modelcontextprotocol/inspector python mcp_server/local_mcp_server.py
+   npx.cmd @modelcontextprotocol/inspector c:\python315\python.exe mcp_server/local_mcp_server.py
    ```
 2. **Inspect & Test Tools:**
    The MCP Inspector will spin up an interactive web dashboard in your browser where you can view live JSON-RPC messages, prompts, and execute the `get_test_metrics` tool in real time.
@@ -85,17 +101,18 @@ The **Model Context Protocol (MCP)** enables LLM agents to securely query intern
 
 ## 5. Module 4: UI (Playwright Python) & API Test Automation
 
-- **UI Test Suite (`tests/test_ui_playwright.py`):** Uses Python Playwright to test the Heroku secure authentication flow.
+- **UI Test Suite (`tests/test_ui_playwright.py`):** Uses Python Playwright to test the Heroku secure authentication flow with real-time terminal step logging (`-s` flag).
 - **API Test Suite (`tests/test_api_rest.py`):** Validates REST contract compliance and JSON schemas against JSONPlaceholder.
 
-Run all tests via pytest (with verbose output and console print statements visible):
-```bash
-pytest -v -s
+### Run UI Automation (Playwright Python):
+To run tests with step-by-step console print statements visible (`-s`) and watch the browser execute visually (`--headed`):
+```powershell
+c:\python315\python.exe -m pytest tests/test_ui_playwright.py -v -s --headed
 ```
 
-To watch the browser execute visually in headed mode:
-```bash
-pytest -v -s --headed
+### Run API Tests:
+```powershell
+c:\python315\python.exe -m pytest tests/test_api_rest.py -v -s
 ```
 
 ---
@@ -106,9 +123,9 @@ pytest -v -s --headed
 - **LLM-as-a-Judge (`ai_governance/llm_judge.py`):** Evaluates unstructured outputs against strict enterprise risk rubrics and emits **Trust Architecture** explainability audit logs.
 
 Run governance scripts:
-```bash
-python ai_governance/data_synthesizer.py
-python ai_governance/llm_judge.py
+```powershell
+c:\python315\python.exe ai_governance/data_synthesizer.py
+c:\python315\python.exe ai_governance/llm_judge.py
 ```
 
 ---
