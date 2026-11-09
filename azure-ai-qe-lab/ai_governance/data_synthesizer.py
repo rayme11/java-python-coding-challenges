@@ -4,16 +4,15 @@ from pathlib import Path
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
-# Load .env from azure-ai-qe-lab directory or project root
 env_path = Path(__file__).resolve().parent.parent / '.env'
 if env_path.exists():
     load_dotenv(dotenv_path=env_path)
 else:
-    load_dotenv() # Fallback to default search
+    load_dotenv()
 
 class AzureAIDataSynthesizer:
     """
-    Synthesizes test data using Azure OpenAI Service with python-dotenv configuration.
+    Synthesizes test data using Azure OpenAI Service with automatic fallback to mock data.
     """
     def __init__(self):
         self.api_key = os.getenv("AZURE_OPENAI_API_KEY")
@@ -21,38 +20,42 @@ class AzureAIDataSynthesizer:
         self.deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4o-mini")
         self.api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
 
-        if self.api_key and self.endpoint:
-            self.client = AzureOpenAI(
-                api_key=self.api_key,
-                api_version=self.api_version,
-                azure_endpoint=self.endpoint
-            )
+        if self.api_key and self.endpoint and "your-resource-name" not in self.endpoint:
+            try:
+                self.client = AzureOpenAI(
+                    api_key=self.api_key,
+                    api_version=self.api_version,
+                    azure_endpoint=self.endpoint
+                )
+            except Exception:
+                self.client = None
         else:
             self.client = None
 
     def synthesize_test_payload(self, schema_description: str) -> dict:
         if self.client:
-            print(f"[Azure OpenAI] Generating test payload for: '{schema_description}'...")
-            response = self.client.chat.completions.create(
-                model=self.deployment,
-                messages=[
-                    {"role": "system", "content": "You are a QA automation expert generating valid JSON test payloads."},
-                    {"role": "user", "content": f"Generate a JSON test payload based on this requirement: {schema_description}"}
-                ],
-                max_tokens=150,
-                temperature=0.3
-            )
-            content = response.choices[0].message.content
             try:
+                print(f"[Azure OpenAI] Generating test payload for: '{schema_description}'...")
+                response = self.client.chat.completions.create(
+                    model=self.deployment,
+                    messages=[
+                        {"role": "system", "content": "You are a QA automation expert generating valid JSON test payloads."},
+                        {"role": "user", "content": f"Generate a JSON test payload based on this requirement: {schema_description}"}
+                    ],
+                    max_tokens=150,
+                    temperature=0.3
+                )
+                content = response.choices[0].message.content
                 return json.loads(content)
-            except Exception:
-                return {"raw_ai_output": content}
+            except Exception as e:
+                print(f"[Azure OpenAI Fallback] API connection failed ({e}). Using smart mock synthesizer.")
         
-        print(f"[Smart Mock Fallback (.env missing)] Synthesizing payload for: '{schema_description}'")
+        print(f"[Smart Mock Data Synthesizer] Synthesizing payload for: '{schema_description}'")
         return {
             "username": "synthetic_user_99",
             "email": "synthetic.qa@enterprise.org",
-            "role": "QA_MANAGER"
+            "role": "QA_MANAGER",
+            "requirement_processed": schema_description
         }
 
 if __name__ == "__main__":

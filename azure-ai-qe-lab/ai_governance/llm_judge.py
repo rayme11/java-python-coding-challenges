@@ -4,16 +4,15 @@ from pathlib import Path
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
-# Load .env from azure-ai-qe-lab directory or project root
 env_path = Path(__file__).resolve().parent.parent / '.env'
 if env_path.exists():
     load_dotenv(dotenv_path=env_path)
 else:
-    load_dotenv() # Fallback to default search
+    load_dotenv()
 
 class AzureLLMJudge:
     """
-    Implements LLM-as-a-Judge and Trust Architecture audit logging using Azure OpenAI Service.
+    Implements LLM-as-a-Judge and Trust Architecture audit logging with automatic fallback.
     """
     def __init__(self):
         self.api_key = os.getenv("AZURE_OPENAI_API_KEY")
@@ -21,12 +20,15 @@ class AzureLLMJudge:
         self.deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4o-mini")
         self.api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
 
-        if self.api_key and self.endpoint:
-            self.client = AzureOpenAI(
-                api_key=self.api_key,
-                api_version=self.api_version,
-                azure_endpoint=self.endpoint
-            )
+        if self.api_key and self.endpoint and "your-resource-name" not in self.endpoint:
+            try:
+                self.client = AzureOpenAI(
+                    api_key=self.api_key,
+                    api_version=self.api_version,
+                    azure_endpoint=self.endpoint
+                )
+            except Exception:
+                self.client = None
         else:
             self.client = None
 
@@ -47,9 +49,8 @@ class AzureLLMJudge:
         passed = score >= risk_rubric.get("passing_threshold", 75)
 
         if self.client and passed:
-            # Optional deep semantic check via Azure OpenAI
-            prompt = f"Evaluate if this test output meets quality standards: '{system_output}'. Reply with 'PASS' or 'FAIL' and short reason."
             try:
+                prompt = f"Evaluate if this test output meets quality standards: '{system_output}'. Reply with 'PASS' or 'FAIL' and short reason."
                 res = self.client.chat.completions.create(
                     model=self.deployment,
                     messages=[{"role": "user", "content": prompt}],
@@ -58,7 +59,7 @@ class AzureLLMJudge:
                 ai_verdict = res.choices[0].message.content
                 violations.append(f"Azure OpenAI Judge verdict: {ai_verdict}")
             except Exception as e:
-                violations.append(f"AI evaluation notice: {str(e)}")
+                violations.append(f"AI evaluation fallback notice (using local rubric): {str(e)}")
 
         audit_record = {
             "test_case": test_name,
