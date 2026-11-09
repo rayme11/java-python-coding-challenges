@@ -128,12 +128,28 @@ The **Model Context Protocol (MCP)** enables LLM agents to securely query intern
 - **UI Test Suite (`tests/test_ui_playwright.py`):** Uses Python Playwright to test the Heroku secure authentication flow with real-time terminal step logging (`-s` flag).
 - **API Test Suite (`tests/test_api_rest.py`):** Validates REST contract compliance and JSON schemas against JSONPlaceholder.
 
+### How to Run UI Tests:
+```powershell
+python -m pytest tests/test_ui_playwright.py -v -s --headed
+```
+
+### How to Run API Tests:
+```powershell
+python -m pytest tests/test_api_rest.py -v -s
+```
+
 ---
 
 ## 6. Module 5: AI Data Synthesis & LLM-as-a-Judge Governance
 
 - **AI Data Synthesizer (`ai_governance/data_synthesizer.py`):** Leverages Azure OpenAI to generate contextual test payloads.
 - **LLM-as-a-Judge (`ai_governance/llm_judge.py`):** Evaluates unstructured outputs against strict enterprise risk rubrics and emits **Trust Architecture** explainability audit logs.
+
+### How to Run AI Governance Scripts:
+```powershell
+python ai_governance/data_synthesizer.py
+python ai_governance/llm_judge.py
+```
 
 ---
 
