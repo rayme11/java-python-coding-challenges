@@ -1,9 +1,15 @@
 import os
 import json
+from pathlib import Path
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
-load_dotenv()
+# Load .env from azure-ai-qe-lab directory or project root
+env_path = Path(__file__).resolve().parent.parent / '.env'
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+else:
+    load_dotenv() # Fallback to default search
 
 class AzureLLMJudge:
     """
