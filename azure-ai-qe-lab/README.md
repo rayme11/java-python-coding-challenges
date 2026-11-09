@@ -7,13 +7,14 @@
 
 ## 📑 Table of Contents
 1. [Executive Architecture & Cost Control Strategy](#1-executive-architecture--cost-control-strategy)
-2. [Module 1: Step-by-Step Azure AI Portal Setup](#2-module-1-step-by-step-azure-ai-portal-setup)
-3. [Module 2: Enterprise Configuration Standards (.env)](#3-module-2-enterprise-configuration-standards-env)
-4. [Module 3: Local MCP Server & Internal System Integration](#4-module-3-local-mcp-server--internal-system-integration)
-5. [Module 4: UI (Playwright Python) & API Test Automation](#5-module-4-ui-playwright-python--api-test-automation)
-6. [Module 5: AI Data Synthesis & LLM-as-a-Judge Governance](#6-module-5-ai-data-synthesis--llm-as-a-judge-governance)
-7. [Module 6: Data Grounding (RAG) in Azure OpenAI](#7-module-6-data-grounding-rag-in-azure-openai)
-8. [Module 7: GitHub & GitHub Actions CI/CD Pipeline](#8-module-7-github--github-actions-cicd-pipeline)
+2. [Step-by-Step Implementation Guide](#-step-by-step-implementation-guide)
+3. [Module 1: Step-by-Step Azure AI Portal Setup](#2-module-1-step-by-step-azure-ai-portal-setup)
+4. [Module 2: Enterprise Configuration Standards (.env)](#3-module-2-enterprise-configuration-standards-env)
+5. [Module 3: Local MCP Server & Internal System Integration](#4-module-3-local-mcp-server--internal-system-integration)
+6. [Module 4: UI (Playwright Python) & API Test Automation](#5-module-4-ui-playwright-python--api-test-automation)
+7. [Module 5: AI Data Synthesis & LLM-as-a-Judge Governance](#6-module-5-ai-data-synthesis--llm-as-a-judge-governance)
+8. [Module 6: Data Grounding (RAG) in Azure OpenAI](#7-module-6-data-grounding-rag-in-azure-openai)
+9. [Module 7: GitHub & GitHub Actions CI/CD Pipeline](#8-module-7-github--github-actions-cicd-pipeline)
 
 ---
 
@@ -30,21 +31,44 @@ As an AI Quality Engineering Leader, your objective is to build a robust, defens
 ## 🚀 Step-by-Step Implementation Guide
 
 ### Step 1: Environment Setup
-1. Ensure Python 3.10+ is installed and accessible (e.g., `c:\python315\python.exe`).
+1. Ensure Python 3.10+ is installed and accessible in your terminal (`python`).
 2. Navigate to the `azure-ai-qe-lab` directory:
    ```powershell
    cd azure-ai-qe-lab
    ```
-3. Install Python dependencies and Playwright browsers (using your specific Python executable):
+3. Install Python dependencies and Playwright browsers:
    ```powershell
-   c:\python315\python.exe -m pip install -r requirements.txt
-   c:\python315\python.exe -m playwright install chromium
+   python -m pip install -r requirements.txt
+   python -m playwright install chromium
    ```
 4. Set up environment variables for Azure OpenAI (optional for local testing; mock fallback included) by copying `.env.example` to `.env`:
    ```powershell
    Copy-Item .env.example .env
    ```
    Populate your `.env` with your Azure credentials.
+
+### Step 2: Launch Local MCP Server & Inspect Tools
+To launch the MCP Server and automatically open the interactive Web UI Inspector:
+```powershell
+npx.cmd @modelcontextprotocol/inspector python mcp_server/local_mcp_server.py
+```
+
+### Step 3: Run UI Automation (Playwright Python)
+To run UI tests with step-by-step console print statements visible (`-s`) and watch the browser execute visually (`--headed`):
+```powershell
+python -m pytest tests/test_ui_playwright.py -v -s --headed
+```
+
+### Step 4: Run API Tests
+```powershell
+python -m pytest tests/test_api_rest.py -v -s
+```
+
+### Step 5: Run AI Governance (LLM-as-a-Judge) & Data Synthesis
+```powershell
+python ai_governance/data_synthesizer.py
+python ai_governance/llm_judge.py
+```
 
 ---
 
@@ -92,7 +116,7 @@ The **Model Context Protocol (MCP)** enables LLM agents to securely query intern
 
 1. **Launch the Official MCP Inspector UI:**
    ```powershell
-   npx.cmd @modelcontextprotocol/inspector c:\python315\python.exe mcp_server/local_mcp_server.py
+   npx.cmd @modelcontextprotocol/inspector python mcp_server/local_mcp_server.py
    ```
 2. **Inspect & Test Tools:**
    The MCP Inspector will spin up an interactive web dashboard in your browser where you can view live JSON-RPC messages, prompts, and execute the `get_test_metrics` tool in real time.
@@ -104,29 +128,12 @@ The **Model Context Protocol (MCP)** enables LLM agents to securely query intern
 - **UI Test Suite (`tests/test_ui_playwright.py`):** Uses Python Playwright to test the Heroku secure authentication flow with real-time terminal step logging (`-s` flag).
 - **API Test Suite (`tests/test_api_rest.py`):** Validates REST contract compliance and JSON schemas against JSONPlaceholder.
 
-### Run UI Automation (Playwright Python):
-To run tests with step-by-step console print statements visible (`-s`) and watch the browser execute visually (`--headed`):
-```powershell
-c:\python315\python.exe -m pytest tests/test_ui_playwright.py -v -s --headed
-```
-
-### Run API Tests:
-```powershell
-c:\python315\python.exe -m pytest tests/test_api_rest.py -v -s
-```
-
 ---
 
 ## 6. Module 5: AI Data Synthesis & LLM-as-a-Judge Governance
 
 - **AI Data Synthesizer (`ai_governance/data_synthesizer.py`):** Leverages Azure OpenAI to generate contextual test payloads.
 - **LLM-as-a-Judge (`ai_governance/llm_judge.py`):** Evaluates unstructured outputs against strict enterprise risk rubrics and emits **Trust Architecture** explainability audit logs.
-
-Run governance scripts:
-```powershell
-c:\python315\python.exe ai_governance/data_synthesizer.py
-c:\python315\python.exe ai_governance/llm_judge.py
-```
 
 ---
 
@@ -144,7 +151,7 @@ c:\python315\python.exe ai_governance/llm_judge.py
    {retrieved_wiki_chunks}
 
    [Task]:
-   Generate test cases for user story #402 strictly adhering to the internal standards above.
+   Test cases for user story #402 strictly adhering to internal standards.
    """
    ```
 
