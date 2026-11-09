@@ -4,9 +4,12 @@ import json
 import sqlite3
 import os
 from datetime import datetime
-from dotenv import load_dotenv
 
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 PORT = int(os.getenv("LOCAL_MCP_SERVER_PORT", 8000))
 DB_PATH = "test_metrics.db"
@@ -33,7 +36,6 @@ def init_db():
 
 class VerboseMCPInspectorHandler(http.server.BaseHTTPRequestHandler):
     def log_message(self, format, *args):
-        # Override default logging to provide clean, structured console inspector logs
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"[{timestamp}] [MCP INSPECTOR LOG] {format % args}")
 
@@ -81,8 +83,6 @@ if __name__ == "__main__":
     print(f"\n[Verbose Local MCP Inspector Server]")
     print(f"Listening on: http://localhost:{PORT}")
     print(f"Available Tool Endpoint: http://localhost:{PORT}/mcp/tools/get_test_metrics")
-    print(f"All incoming agent prompts, tool calls, and JSON payloads will be logged below in real-time...\n")
-    
     with socketserver.TCPServer(("", PORT), VerboseMCPInspectorHandler) as httpd:
         try:
             httpd.serve_forever()
