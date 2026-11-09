@@ -88,9 +88,14 @@ The **Model Context Protocol (MCP)** enables LLM agents to securely query intern
 - **UI Test Suite (`tests/test_ui_playwright.py`):** Uses Python Playwright to test the Heroku secure authentication flow.
 - **API Test Suite (`tests/test_api_rest.py`):** Validates REST contract compliance and JSON schemas against JSONPlaceholder.
 
-Run all tests via pytest:
+Run all tests via pytest (with verbose output and console print statements visible):
 ```bash
-pytest -v
+pytest -v -s
+```
+
+To watch the browser execute visually in headed mode:
+```bash
+pytest -v -s --headed
 ```
 
 ---
