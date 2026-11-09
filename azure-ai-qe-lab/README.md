@@ -72,15 +72,14 @@ In enterprise environments, hardcoding API keys is a critical security violation
 
 ## 4. Module 3: Local MCP Server & Internal System Integration
 
-The **Model Context Protocol (MCP)** enables LLM agents to securely query internal enterprise systems (test metrics, bug trackers, CI logs).
+The **Model Context Protocol (MCP)** enables LLM agents to securely query internal enterprise systems (test metrics, bug trackers, CI logs) via standardized JSON-RPC over STDIO.
 
-1. **Start your Local MCP Server:**
-   ```bash
-   python mcp_server/local_mcp_server.py
+1. **Launch the Official MCP Inspector UI:**
+   ```powershell
+   npx.cmd @modelcontextprotocol/inspector python mcp_server/local_mcp_server.py
    ```
-2. **Test the MCP Tool Endpoint:**
-   Open your browser or run curl to see the JSON tool response:
-   `http://localhost:8000/mcp/tools/get_test_metrics`
+2. **Inspect & Test Tools:**
+   The MCP Inspector will spin up an interactive web dashboard in your browser where you can view live JSON-RPC messages, prompts, and execute the `get_test_metrics` tool in real time.
 
 ---
 
