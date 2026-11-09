@@ -1,18 +1,9 @@
-import http.server
-import socketserver
+import sys
 import json
 import sqlite3
 import os
-from datetime import datetime
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
-
-PORT = int(os.getenv("LOCAL_MCP_SERVER_PORT", 8000))
-DB_PATH = "test_metrics.db"
+DB_PATH = os.path.join(os.path.dirname(__file__), "test_metrics.db")
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -34,57 +25,91 @@ def init_db():
         conn.commit()
     conn.close()
 
-class VerboseMCPInspectorHandler(http.server.BaseHTTPRequestHandler):
-    def log_message(self, format, *args):
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"[{timestamp}] [MCP INSPECTOR LOG] {format % args}")
+def get_test_metrics():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT component, pass_rate, open_bugs FROM test_metrics")
+    rows = cursor.fetchall()
+    conn.close()
+    return [{"component": r[0], "pass_rate": r[1], "open_bugs": r[2]} for r in rows]
 
-    def do_GET(self):
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"\n{'='*70}")
-        print(f"[{timestamp}] 📥 INCOMING MCP PROMPT / TOOL REQUEST")
-        print(f"Path: {self.path}")
-        print(f"Headers:\n{self.headers}")
-        print(f"{'='*70}")
-
-        if self.path.startswith("/mcp/tools/get_test_metrics"):
-            conn = sqlite3.connect(DB_PATH)
-            cursor = conn.cursor()
-            cursor.execute("SELECT component, pass_rate, open_bugs FROM test_metrics")
-            rows = cursor.fetchall()
-            conn.close()
+def handle_jsonrpc():
+    init_db()
+    # Simple JSON-RPC over STDIO handler for MCP Inspector
+    for line in sys.stdin:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            request = json.loads(line)
+            req_id = request.get("id")
+            method = request.get("method")
             
-            metrics = [{"component": r[0], "pass_rate": r[1], "open_bugs": r[2]} for r in rows]
-            response_data = {
-                "mcp_protocol_version": "1.0",
-                "server_status": "active",
-                "tools_executed": "get_test_metrics",
-                "data": metrics
+            # MCP Protocol Handshaking & Tool listing
+            if method == "initialize":
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": req_id,
+                    "result": {
+                        "protocolVersion": "2024-11-05",
+                        "capabilities": {"tools": {}},
+                        "serverInfo": {"name": "enterprise-qe-mcp-server", "version": "1.0.0"}
+                    }
+                }
+            elif method == "tools/list":
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": req_id,
+                    "result": {
+                        "tools": [
+                            {
+                                "name": "get_test_metrics",
+                                "description": "Retrieve enterprise component test pass rates and open bug counts.",
+                                "inputSchema": {"type": "object", "properties": {}}
+                            }
+                        ]
+                    }
+                }
+            elif method == "tools/call":
+                params = request.get("params", {})
+                tool_name = params.get("name")
+                if tool_name == "get_test_metrics":
+                    metrics = get_test_metrics()
+                    response = {
+                        "jsonrpc": "2.0",
+                        "id": req_id,
+                        "result": {
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": json.dumps(metrics, indent=2)
+                                }
+                            ]
+                        }
+                    }
+                else:
+                    response = {
+                        "jsonrpc": "2.0",
+                        "id": req_id,
+                        "error": {"code": -32601, "message": f"Tool not found: {tool_name}"}
+                    }
+            else:
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": req_id,
+                    "error": {"code": -32601, "message": f"Method not found: {method}"}
+                }
+            
+            sys.stdout.write(json.dumps(response) + "\n")
+            sys.stdout.flush()
+        except Exception as e:
+            err_resp = {
+                "jsonrpc": "2.0",
+                "id": None,
+                "error": {"code": -32603, "message": str(e)}
             }
-
-            response_body = json.dumps(response_data, indent=2)
-            
-            print(f"[{timestamp}] 📤 OUTGOING MCP TOOL RESPONSE:")
-            print(response_body)
-            print(f"{'='*70}\n")
-
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            self.wfile.write(response_body.encode())
-        else:
-            print(f"[{timestamp}] ❌ MCP Tool Not Found: {self.path}")
-            self.send_response(404)
-            self.end_headers()
-            self.wfile.write(b"MCP Tool Not Found")
+            sys.stdout.write(json.dumps(err_resp) + "\n")
+            sys.stdout.flush()
 
 if __name__ == "__main__":
-    init_db()
-    print(f"\n[Verbose Local MCP Inspector Server]")
-    print(f"Listening on: http://localhost:{PORT}")
-    print(f"Available Tool Endpoint: http://localhost:{PORT}/mcp/tools/get_test_metrics")
-    with socketserver.TCPServer(("", PORT), VerboseMCPInspectorHandler) as httpd:
-        try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\n[Local MCP Server] Shutting down inspector...")
+    handle_jsonrpc()
