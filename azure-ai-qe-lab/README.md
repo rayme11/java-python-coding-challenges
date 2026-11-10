@@ -70,6 +70,11 @@ python ai_governance/data_synthesizer.py
 python ai_governance/llm_judge.py
 ```
 
+### Step 6: Run RAG & Vector Data Grounding
+```powershell
+python ai_governance/rag_test_synthesizer.py
+```
+
 ---
 
 ## 2. Module 1: Step-by-Step Azure AI Portal Setup
@@ -157,19 +162,24 @@ python ai_governance/llm_judge.py
 
 **Data Grounding / Retrieval-Augmented Generation (RAG)** ensures that AI-generated test scenarios and code comply strictly with internal company guidelines and architecture specs rather than generic training data.
 
-### How to Implement RAG in Azure:
-1. **Vector Store:** Index your internal architectural wikis, acceptance criteria, and compliance docs into **Azure AI Search**.
-2. **Retrieval Step:** When generating test cases, query Azure AI Search for relevant design documents matching the user story.
-3. **Prompt Grounding:** Inject the retrieved context into the system prompt:
+### Step-by-Step Implementation of RAG in Azure QE:
+1. **Vector Store & Indexing:** Index your internal architectural wikis, security specifications (e.g., password rules SEC-01), acceptance criteria, and compliance docs into **Azure AI Search** (or vectorize them locally as demonstrated in `ai_governance/rag_test_synthesizer.py`).
+2. **Retrieval Step:** When generating test cases for a user story, query the vector index for relevant design documents matching the user story requirements.
+3. **Prompt Grounding:** Inject the retrieved context into the system prompt so the LLM anchors its test case generation to official enterprise specs:
    ```python
    prompt = f"""
    [Internal Architecture Grounding Context]:
    {retrieved_wiki_chunks}
 
    [Task]:
-   Test cases for user story #402 strictly adhering to internal standards.
+   Generate test cases and synthetic test data for the user story strictly adhering to internal standards above.
    """
    ```
+
+### How to Run the RAG Test Synthesizer:
+```powershell
+python ai_governance/rag_test_synthesizer.py
+```
 
 ---
 
