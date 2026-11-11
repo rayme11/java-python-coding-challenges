@@ -162,19 +162,12 @@ python ai_governance/llm_judge.py
 
 **Data Grounding / Retrieval-Augmented Generation (RAG)** ensures that AI-generated test scenarios and code comply strictly with internal company guidelines and architecture specs rather than generic training data.
 
-### Step-by-Step Implementation of RAG in Azure QE:
-1. **Vector Store & Indexing:** Index your internal architectural wikis, security specifications (e.g., password rules SEC-01), acceptance criteria, and compliance docs into **Azure AI Search** (or vectorize them locally as demonstrated in `ai_governance/rag_test_synthesizer.py`).
-2. **Retrieval Step:** When generating test cases for a user story, query the vector index for relevant design documents matching the user story requirements.
-3. **Prompt Grounding:** Inject the retrieved context into the system prompt so the LLM anchors its test case generation to official enterprise specs:
-   ```python
-   prompt = f"""
-   [Internal Architecture Grounding Context]:
-   {retrieved_wiki_chunks}
-
-   [Task]:
-   Generate test cases and synthetic test data for the user story strictly adhering to internal standards above.
-   """
-   ```
+### Enterprise Architecture Note: Indexing Existing UI & API Scripts into Azure AI Search
+**Yes, absolutely!** In real-world enterprise environments, indexing your existing UI automation scripts (Playwright/Selenium), API test suites (REST Assured/Requests), and BDD feature files into **Azure AI Search** is the gold standard for scaling test strategy:
+1. **Automated Ingestion:** Parse existing test scripts into semantic chunks (e.g., extracting test purpose, Page Object selectors, endpoint URIs, and assertion logic).
+2. **Vector Embedding:** Vectorize these scripts using Azure OpenAI embeddings (`text-embedding-3-small`).
+3. **Semantic Reuse & Deduplication:** When a new user story is created, the system queries Azure AI Search to find existing tests that touch similar modules or APIs. Instead of writing duplicate tests, the LLM reuses existing helper functions, POM methods, and assertion patterns.
+4. **Compounding Test Intelligence:** As new tests pass in CI/CD, they are automatically vectorized and fed back into the search index, compounding your test engineering intelligence over time.
 
 ### How to Run the RAG Test Synthesizer:
 ```powershell
