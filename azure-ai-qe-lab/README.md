@@ -13,7 +13,7 @@
 5. [Module 3: Local MCP Server & Internal System Integration](#4-module-3-local-mcp-server--internal-system-integration)
 6. [Module 4: UI (Playwright Python) & API Test Automation](#5-module-4-ui-playwright-python--api-test-automation)
 7. [Module 5: AI Data Synthesis & LLM-as-a-Judge Governance](#6-module-5-ai-data-synthesis--llm-as-a-judge-governance)
-8. [Module 6: Data Grounding (RAG) in Azure OpenAI](#7-module-6-data-grounding-rag-in-azure-openai)
+8. [Module 6: Data Grounding (RAG) & Azure AI Search Vector Database](#7-module-6-data-grounding-rag--azure-ai-search-vector-database)
 9. [Module 7: GitHub & GitHub Actions CI/CD Pipeline](#8-module-7-github--github-actions-cicd-pipeline)
 
 ---
@@ -158,16 +158,17 @@ python ai_governance/llm_judge.py
 
 ---
 
-## 7. Module 6: Data Grounding (RAG) in Azure OpenAI
+## 7. Module 6: Data Grounding (RAG) & Azure AI Search Vector Database
 
 **Data Grounding / Retrieval-Augmented Generation (RAG)** ensures that AI-generated test scenarios and code comply strictly with internal company guidelines and architecture specs rather than generic training data.
 
-### Enterprise Architecture Note: Indexing Existing UI & API Scripts into Azure AI Search
-**Yes, absolutely!** In real-world enterprise environments, indexing your existing UI automation scripts (Playwright/Selenium), API test suites (REST Assured/Requests), and BDD feature files into **Azure AI Search** is the gold standard for scaling test strategy:
-1. **Automated Ingestion:** Parse existing test scripts into semantic chunks (e.g., extracting test purpose, Page Object selectors, endpoint URIs, and assertion logic).
-2. **Vector Embedding:** Vectorize these scripts using Azure OpenAI embeddings (`text-embedding-3-small`).
-3. **Semantic Reuse & Deduplication:** When a new user story is created, the system queries Azure AI Search to find existing tests that touch similar modules or APIs. Instead of writing duplicate tests, the LLM reuses existing helper functions, POM methods, and assertion patterns.
-4. **Compounding Test Intelligence:** As new tests pass in CI/CD, they are automatically vectorized and fed back into the search index, compounding your test engineering intelligence over time.
+### 📚 Dedicated Vector Search Guide:
+For a complete, step-by-step tutorial on uploading existing UI & API automation scripts to **Azure AI Search** as a vector database, please refer to:
+👉 **[`VECTOR_SEARCH_AZURE_AI_GUIDE.md`](./VECTOR_SEARCH_AZURE_AI_GUIDE.md)**
+
+### Sample UI & API Vector Dataset:
+We have created a ready-to-import sample dataset located at:
+📁 **`vector_data/sample_ui_api_specs.json`**
 
 ### How to Run the RAG Test Synthesizer:
 ```powershell

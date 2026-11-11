@@ -1,0 +1,40 @@
+[
+  {
+    "id": "ui-script-001",
+    "category": "UI_AUTOMATION",
+    "title": "Playwright Secure Login POM",
+    "component": "Authentication",
+    "description": "Playwright Python Page Object Model script for logging into Heroku secure area.",
+    "selectors": "#username, #password, button.radius, #flash",
+    "assertions": "expect(page).to_have_url('/secure'), expect(flash).to_contain_text('You logged into a secure area!')"
+  },
+  {
+    "id": "ui-script-002",
+    "category": "UI_AUTOMATION",
+    "title": "E-Commerce Checkout Flow Test",
+    "component": "Checkout",
+    "description": "UI automation test validating cart total calculation, shipping address entry, and order placement.",
+    "selectors": "#cart-total, #shipping-address, #place-order-btn, #order-confirmation-banner",
+    "assertions": "expect(total).toEqual('$45.99'), expect(banner).toBeVisible()"
+  },
+  {
+    "id": "api-spec-001",
+    "category": "API_AUTOMATION",
+    "title": "REST API Get Post Contract Test",
+    "component": "PostsService",
+    "description": "API test validating GET /posts/{id} returns correct JSON schema, status 200, and required fields.",
+    "endpoint": "GET /posts/{id}",
+    "expected_status": 200,
+    "response_schema": "{ id: number, userId: number, title: string, body: string }"
+  },
+  {
+    "id": "api-spec-002",
+    "category": "API_AUTOMATION",
+    "title": "REST API User Registration & Rate Limiting",
+    "component": "UserService",
+    "description": "API test validating user creation POST /users and rate limiting HTTP 429 compliance.",
+    "endpoint": "POST /users",
+    "expected_status": 201,
+    "security_rule": "Must return 429 Too Many Requests if request frequency > 100 req/min."
+  }
+]
