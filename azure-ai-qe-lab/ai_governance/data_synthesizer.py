@@ -16,18 +16,24 @@ class AzureAIDataSynthesizer:
     """
     def __init__(self):
         self.api_key = os.getenv("AZURE_OPENAI_API_KEY")
-        self.endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-        self.deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4o-mini")
-        self.api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
+        self.endpoint = os.getenv("AZURE_OPENAI_ENDPOINT") # This is now the base_url
+        self.deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
+        self.api_version = os.getenv("AZURE_OPENAI_API_VERSION") # Re-enabled
 
-        if self.api_key and self.endpoint and "your-resource-name" not in self.endpoint:
+        print(f"DEBUG: OpenAI API Key (first 5 chars): {self.api_key[:5] if self.api_key else 'N/A'}")
+        print(f"DEBUG: OpenAI Endpoint (Base URL): {self.endpoint}")
+        print(f"DEBUG: OpenAI Deployment Name: {self.deployment}")
+        print(f"DEBUG: OpenAI API Version: {self.api_version}") # Re-enabled
+
+        if self.api_key and self.endpoint and self.deployment and self.api_version and "your-resource-name" not in self.endpoint:
             try:
                 self.client = AzureOpenAI(
                     api_key=self.api_key,
-                    api_version=self.api_version,
-                    azure_endpoint=self.endpoint
+                    api_version=self.api_version, # Re-enabled
+                    base_url=f"{self.endpoint}/deployments/{self.deployment}"
                 )
-            except Exception:
+            except Exception as e:
+                print(f"DEBUG: AzureOpenAI client initialization failed: {e}")
                 self.client = None
         else:
             self.client = None
@@ -37,7 +43,7 @@ class AzureAIDataSynthesizer:
             try:
                 print(f"[Azure OpenAI] Generating test payload for: '{schema_description}'...")
                 response = self.client.chat.completions.create(
-                    model=self.deployment,
+                    model=self.deployment, # Model here is actually deployment_name for AzureOpenAI client
                     messages=[
                         {"role": "system", "content": "You are a QA automation expert generating valid JSON test payloads."},
                         {"role": "user", "content": f"Generate a JSON test payload based on this requirement: {schema_description}"}
@@ -48,7 +54,7 @@ class AzureAIDataSynthesizer:
                 content = response.choices[0].message.content
                 return json.loads(content)
             except Exception as e:
-                print(f"[Azure OpenAI Fallback] API connection failed ({e}). Using smart mock synthesizer.")
+                print(f"[Azure OpenAI Fallback] API connection or generation failed ({e}). Using smart mock synthesizer.")
         
         print(f"[Smart Mock Data Synthesizer] Synthesizing payload for: '{schema_description}'")
         return {

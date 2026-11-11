@@ -19,18 +19,24 @@ class AzureRAGTestSynthesizer:
     def __init__(self):
         # Azure OpenAI Configuration
         self.openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
-        self.openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-        self.openai_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4o-mini")
-        self.openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
+        self.openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT") # This is now the base_url
+        self.openai_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME") 
+        self.openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION") # Re-enabled
 
-        if self.openai_api_key and self.openai_endpoint and "your-resource-name" not in self.openai_endpoint:
+        print(f"DEBUG: OpenAI API Key (first 5 chars): {self.openai_api_key[:5] if self.openai_api_key else 'N/A'}")
+        print(f"DEBUG: OpenAI Endpoint (Base URL): {self.openai_endpoint}")
+        print(f"DEBUG: OpenAI Deployment Name: {self.openai_deployment}")
+        print(f"DEBUG: OpenAI API Version: {self.openai_api_version}") # Re-enabled
+
+        if self.openai_api_key and self.openai_endpoint and self.openai_deployment and self.openai_api_version and "your-resource-name" not in self.openai_endpoint:
             try:
                 self.openai_client = AzureOpenAI(
                     api_key=self.openai_api_key,
-                    api_version=self.openai_api_version,
-                    azure_endpoint=self.openai_endpoint
+                    api_version=self.openai_api_version, # Re-enabled
+                    base_url=f"{self.openai_endpoint}/deployments/{self.openai_deployment}"
                 )
-            except Exception:
+            except Exception as e:
+                print(f"DEBUG: AzureOpenAI client initialization failed: {e}")
                 self.openai_client = None
         else:
             self.openai_client = None

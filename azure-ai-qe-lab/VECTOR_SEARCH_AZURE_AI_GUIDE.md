@@ -4,7 +4,7 @@
 
 As an AI Quality Engineering Leader, one of the most powerful architectural patterns you can build is a **Self-Learning Test Strategy Engine**. Instead of writing test cases from scratch, your AI pipeline queries a vector database containing all your existing UI scripts (Playwright/Selenium), API contracts (REST Assured/Requests), and compliance rules. 
 
-This guide walks you step-by-step through provisioning Azure AI Search, importing our sample UI & API dataset (`vector_data/sample_ui_api_specs.json`), and connecting it to your local RAG synthesizer.
+This guide walks you step-by-step through provisioning Azure AI Search, importing our sample UI & API dataset (`vector_data/sample_ui_api_specs.json`) via Azure Blob Storage, and connecting it to your local RAG synthesizer.
 
 ---
 
@@ -31,23 +31,37 @@ Follow these exact steps in the Azure Portal to set up your vector database:
    - **Pricing Tier:** Select **Free** or **Basic** (Free tier is $0/month and fully supports vector search for learning).
 4. Click **Review + create** -> **Create**.
 
-### Step B: Import Sample Data into an Index
-1. Once deployment completes, click **Go to resource**.
-2. On the Overview page, click the **Import data** button at the top toolbar.
+### Step B: Upload Sample Data to Azure Blob Storage
+1. While your Azure AI Search service is deploying, create an **Azure Storage Account**:
+   - Click **Create a resource** -> Search for **Storage account** -> Click **Create**.
+   - Select your subscription and resource group (`rg-ai-qe-lab-prod`).
+   - **Storage account name:** `saqemanagerlab` (or unique name).
+   - **Location:** Same as your Search Service.
+   - **Performance:** Standard. **Redundancy:** Locally-redundant storage (LRS). Click **Review + create** -> **Create**.
+2. Once deployed, go to your Storage Account resource -> **Containers** (under Data storage) -> Click **+ Container**.
+3. **New container:** Name it `qe-scripts-data` -> **Public access level:** Private (no anonymous access) -> Click **Create**.
+4. **Upload `sample_ui_api_specs.json`:** Go into the `qe-scripts-data` container -> Click **Upload** -> Select `azure-ai-qe-lab/vector_data/sample_ui_api_specs.json` from your local machine.
+
+### Step C: Import Sample Data into an Azure AI Search Indexer
+1. Once your Azure AI Search service deployment is complete, click **Go to resource**.
+2. On the Overview page, click **Import data** button at the top toolbar.
 3. **Connect to your data:**
-   - Data Source: Select **Upload a file** (or JSON / Cosmos DB).
-   - Upload the file: Select `azure-ai-qe-lab/vector_data/sample_ui_api_specs.json`.
+   - Data Source: Select **Azure Blob Storage**.
+   - Select the Storage account you just created (`saqemanagerlab`).
+   - Select the Container (`qe-scripts-data`).
    - Click **Next: Add cognitive skills (Optional)** -> Skip and click **Next: Customize target index**.
 4. **Customize Target Index:**
    - **Index name:** `enterprise-qe-scripts-idx`
    - **Key:** Select `id` (Edm.String).
-   - Check **Retrievable**, **Searchable**, and **Filterable** for fields like `title`, `component`, `description`, `selectors`, and `endpoint`.
+   - Ensure **Retrievable**, **Searchable**, and **Filterable** are checked for fields like `title`, `component`, `description`, `selectors`, and `endpoint`.
+   - **Parsing Mode:** Important! Select **`jsonArray`** because our `sample_ui_api_specs.json` is a JSON array.
 5. **Create Indexer:**
    - Click **Next: Create an indexer** -> Name it `qe-scripts-indexer`.
+   - **Schedule:** Set it to `Hourly` (for continuous updates as you add more files, for a real-world scenario). 
    - Click **Submit**. Azure AI Search will instantly parse, index, and vectorize your UI/API script specs!
 
-### Step C: Retrieve API Key & Endpoint
-1. Go back to your Search Service overview page.
+### Step D: Retrieve API Key & Endpoint
+1. Go back to your Azure AI Search Service overview page.
 2. Click **Keys** in the left sidebar.
 3. Copy your **Primary admin key** and your **Service URL** (e.g., `https://search-qe-manager-lab.search.windows.net`).
 
