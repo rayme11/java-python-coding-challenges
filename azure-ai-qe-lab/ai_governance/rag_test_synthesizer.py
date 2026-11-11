@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from dotenv import load_dotenv
 from openai import AzureOpenAI
+import requests
 
 env_path = Path(__file__).resolve().parent.parent / '.env'
 if env_path.exists():
@@ -16,12 +17,32 @@ class AzureRAGTestSynthesizer:
     for AI-driven test case and test data generation.
     """
     def __init__(self):
-        self.api_key = os.getenv("AZURE_OPENAI_API_KEY")
-        self.endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-        self.deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4o-mini")
-        
-        # Simulated Internal Enterprise Architectural Knowledge Base (Vector Store / Azure AI Search index)
-        self.knowledge_base = [
+        # Azure OpenAI Configuration
+        self.openai_api_key = os.getenv("AZURE_OPENAI_API_KEY")
+        self.openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        self.openai_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4o-mini")
+        self.openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
+
+        if self.openai_api_key and self.openai_endpoint and "your-resource-name" not in self.openai_endpoint:
+            try:
+                self.openai_client = AzureOpenAI(
+                    api_key=self.openai_api_key,
+                    api_version=self.openai_api_version,
+                    azure_endpoint=self.openai_endpoint
+                )
+            except Exception:
+                self.openai_client = None
+        else:
+            self.openai_client = None
+
+        # Azure AI Search Configuration
+        self.search_endpoint = os.getenv("AZURE_SEARCH_ENDPOINT")
+        self.search_admin_key = os.getenv("AZURE_SEARCH_ADMIN_KEY")
+        self.search_index_name = "enterprise-qe-scripts-idx"
+        self.search_api_version = "2023-11-01"
+
+        # Simulated Internal Enterprise Architectural Knowledge Base (Local fallback)
+        self.local_knowledge_base = [
             {
                 "id": "doc-001",
                 "title": "Authentication Security Specification v2.4",
@@ -39,34 +60,48 @@ class AzureRAGTestSynthesizer:
             }
         ]
 
-        if self.api_key and self.endpoint and "your-resource-name" not in self.endpoint:
-            try:
-                self.client = AzureOpenAI(
-                    api_key=self.api_key,
-                    api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01"),
-                    azure_endpoint=self.endpoint
-                )
-            except Exception:
-                self.client = None
-        else:
-            self.client = None
-
     def retrieve_relevant_docs(self, query: str) -> list:
         """
-        Simulates Vector Search / Azure AI Search retrieval step based on semantic keyword match.
-        In production Azure AI Search, this performs approximate nearest neighbor (ANN) vector search.
+        Queries Azure AI Search for relevant documents, or falls back to local mock knowledge base.
         """
-        print(f"[Azure AI Search (RAG)] Querying vector index for: '{query}'...")
+        if self.search_endpoint and self.search_admin_key and "your-search-service-name" not in self.search_endpoint:
+            try:
+                print(f"[Azure AI Search (RAG)] Querying enterprise vector index for: '{query}'...")
+                url = f"{self.search_endpoint}/indexes/{self.search_index_name}/docs/search?api-version={self.search_api_version}"
+                headers = {
+                    "Content-Type": "application/json",
+                    "api-key": self.search_admin_key
+                }
+                payload = {
+                    "search": query,
+                    "queryType": "simple", # Use simple query type for basic keyword search
+                    "select": "id, title, content", # Select fields to retrieve
+                    "top": 3
+                }
+                response = requests.post(url, json=payload, headers=headers)
+                response.raise_for_status() # Raise an exception for HTTP errors
+                search_results = response.json().get("value", [])
+                retrieved = []
+                for result in search_results:
+                    retrieved.append({"id": result["id"], "title": result["title"], "content": result["content"]})
+                
+                print(f"[Azure AI Search (RAG)] Retrieved {len(retrieved)} relevant document(s) from Azure AI Search.")
+                return retrieved if retrieved else self.local_knowledge_base[:1] # Fallback to local if Azure Search returns empty
+            except Exception as e:
+                print(f"[Azure AI Search Fallback] Connection or search failed ({e}). Using local mock knowledge base.")
+        
+        # Local mock retrieval based on keyword match
+        print(f"[Local Mock RAG] Querying local knowledge base for: '{query}'...")
         retrieved = []
         query_lower = query.lower()
-        for doc in self.knowledge_base:
+        for doc in self.local_knowledge_base:
             if any(kw in doc["content"].lower() for kw in query_lower.split()):
                 retrieved.append(doc)
         
         if not retrieved:
-            retrieved = [self.knowledge_base[0]] # Default fallback doc
+            retrieved = [self.local_knowledge_base[0]] # Default fallback doc
             
-        print(f"[Azure AI Search (RAG)] Retrieved {len(retrieved)} relevant architectural document(s).")
+        print(f"[Local Mock RAG] Retrieved {len(retrieved)} relevant architectural document(s) locally.")
         return retrieved
 
     def synthesize_grounded_test_cases(self, user_story: str) -> dict:
@@ -90,11 +125,11 @@ Return the response in valid JSON format containing:
 2. "synthetic_test_data": valid inputs matching the rules.
 """
 
-        if self.client:
+        if self.openai_client:
             try:
                 print(f"[Azure OpenAI (RAG Prompt Grounding)] Generating grounded test cases...")
-                response = self.client.chat.completions.create(
-                    model=self.deployment,
+                response = self.openai_client.chat.completions.create(
+                    model=self.openai_deployment,
                     messages=[
                         {"role": "system", "content": "You are an expert QA Enterprise Architect using RAG to ensure 100% compliance with internal security specifications."},
                         {"role": "user", "content": grounded_prompt}
