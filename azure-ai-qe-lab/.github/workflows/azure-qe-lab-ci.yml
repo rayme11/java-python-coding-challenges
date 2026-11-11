@@ -5,6 +5,7 @@ on:
     branches: [ feature/azure-ai-qe-implementation ]
   pull_request:
     branches: [ feature/azure-ai-qe-implementation ]
+  workflow_dispatch:
 
 jobs:
   azure-qe-pipeline:
@@ -27,9 +28,14 @@ jobs:
 
     - name: Run Python API Tests
       run: |
-        pytest azure-ai-qe-lab/tests/test_api_rest.py
+        pytest azure-ai-qe-lab/tests/test_api_rest.py -v
 
-    - name: Run AI Governance Scripts
+    - name: Run Python Playwright UI Tests
+      run: |
+        pytest azure-ai-qe-lab/tests/test_ui_playwright.py -v
+
+    - name: Run AI Governance & Data Synthesis Scripts
       run: |
         python azure-ai-qe-lab/ai_governance/data_synthesizer.py
         python azure-ai-qe-lab/ai_governance/llm_judge.py
+        python azure-ai-qe-lab/ai_governance/rag_test_synthesizer.py
