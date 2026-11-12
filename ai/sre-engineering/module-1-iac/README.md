@@ -7,6 +7,7 @@
 ## 🎯 Learning Objectives
 
 By completing this module, you will be able to:
+
 - [ ] Initialize Terraform and configure Azure provider
 - [ ] Create resource groups, virtual networks, and storage accounts via Terraform
 - [ ] Deploy Azure resources using Bicep (Microsoft's native IaC)
@@ -19,13 +20,17 @@ By completing this module, you will be able to:
 ## 📋 Theory: Infrastructure as Code (IaC)
 
 **Why IaC?**
-- **Consistency:** Same environment every time (dev, test, prod)
-- **Version Control:** Infrastructure changes tracked in Git
-- **Repeatability:** Recreate entire environments in minutes
-- **Documentation:** Code IS documentation
-- **Cost Control:** Tear down resources when not needed
+
+| Benefit | Description |
+|---------|-------------|
+| Consistency | Same environment every time (dev, test, prod) |
+| Version Control | Infrastructure changes tracked in Git |
+| Repeatability | Recreate entire environments in minutes |
+| Documentation | Code IS documentation |
+| Cost Control | Tear down resources when not needed |
 
 **Terraform vs Bicep vs ARM:**
+
 | Feature | Terraform | Bicep | ARM JSON |
 |---------|-----------|-------|----------|
 | Cloud Agnostic | ✅ Yes | ❌ Azure only | ❌ Azure only |
@@ -36,57 +41,47 @@ By completing this module, you will be able to:
 
 ---
 
-## 🚀 Prerequisites
+## 🛠️ Step 1: Initialize Terraform
 
-Install these tools on Windows (PowerShell):
+### Prerequisites
+
+**Windows PowerShell:**
+```powershell
+winget install HashiCorp.Terraform
+terraform --version
+```
+
+**Linux/macOS Bash:**
+```bash
+wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt install terraform
+terraform --version
+```
+
+### Initialize Terraform Working Directory
 
 ```powershell
-# Install Azure CLI (winget)
-winget install Microsoft.AzureCLI
-
-# Install Terraform (winget)
-winget install HashiCorp.Terraform
-
-# Install Docker Desktop
-winget install Docker.DockerDesktop
-
-# Install kubectl
-winget install Kubernetes.kubectl
-
-# Install Helm
-winget install Helm.Helm
-
-# Verify installations
-az --version
+# PowerShell
+cd ai\sre-engineering\module-1-iac
+terraform init
 terraform --version
-docker --version
-kubectl version --client
-helm version
+terraform providers
+```
 
-# Login to Azure
-az login
+```bash
+# Bash
+cd ai/sre-engineering/module-1-iac
+terraform init
+terraform --version
+terraform providers
 ```
 
 ---
 
-## 🛠️ Step 1: Initialize Terraform
+## 🛠️ Step 2: Create Azure Resource Group via Terraform
 
-### Initialize Terraform with Azure Provider
-
-```bash
-cd ai/sre-engineering/module-1-iac
-
-# Initialize Terraform working directory
-terraform init
-
-# Verify Terraform version
-terraform --version
-
-# List available providers
-terraform providers
-```
-
-### Create Azure Resource Group via Terraform
+### Create Terraform Configuration Files
 
 **File:** `main.tf`
 
@@ -105,7 +100,6 @@ provider "azurerm" {
   features {}
 }
 
-# Resource Group
 resource "azurerm_resource_group" "qe_rg" {
   name     = "rg-qe-lab-${var.environment}"
   location = var.location
@@ -116,7 +110,6 @@ resource "azurerm_resource_group" "qe_rg" {
   }
 }
 
-# Output the resource group ID
 output "resource_group_id" {
   value = azurerm_resource_group.qe_rg.id
 }
@@ -175,48 +168,61 @@ location    = "eastus"
 
 ### Initialize and Plan
 
+**PowerShell:**
+```powershell
+cd ai\sre-engineering\module-1-iac
+terraform init
+terraform validate
+terraform plan -out=tfplan
+terraform show tfplan
+```
+
+**Bash:**
 ```bash
 cd ai/sre-engineering/module-1-iac
-
-# Initialize Terraform (downloads providers)
 terraform init
-
-# Validate configuration syntax
 terraform validate
-
-# Show execution plan (dry run)
 terraform plan -out=tfplan
-
-# View the plan in human-readable format
 terraform show tfplan
 ```
 
 ### Apply Changes
 
-```bash
-# Apply the plan to create resources
+**PowerShell:**
+```powershell
 terraform apply tfplan
-
-# Or apply directly without plan file
+# OR
 terraform apply -auto-approve
-
-# Verify resources were created
 terraform show
 ```
 
-### Verify Resources Created
-
+**Bash:**
 ```bash
-# List resource groups in Azure
-az group list --query "[].{name:name, location:location, provisioningState:properties.provisioningState}" --output table
+terraform apply tfplan
+# OR
+terraform apply -auto-approve
+terraform show
+```
 
-# Find our specific resource group
+---
+
+## 🚀 Step 3: Verify Resources Created
+
+**PowerShell:**
+```powershell
+az group list --query "[].{name:name, location:location, provisioningState:properties.provisioningState}" --output table
+az group show --name rg-qe-lab-dev --query "{name:name, location:location, id:id}"
+```
+
+**Bash:**
+```bash
+az group list --query "[].{name:name, location:location, provisioningState:properties.provisioningState}" --output table
 az group show --name rg-qe-lab-dev --query "{name:name, location:location, id:id}"
 ```
 
 ---
 
-## 🚀 Step 3: Create Virtual Network
+## 🚀 Step 4: Create Virtual Network via Terraform
 
 **File:** `modules/virtual-network/main.tf`
 
@@ -280,38 +286,46 @@ output "subnet_id" {
 }
 ```
 
-**File:** `modules/virtual-network/variables.tf`
+### Deploy Virtual Network via Terraform
 
-```hcl
-variable "resource_group_name" {
-  type = string
+**PowerShell:**
+```powershell
+cd ai\sre-engineering\module-1-iac
+
+# Add VNet module to main.tf
+@"
+# Virtual Network Module
+module "vnet" {
+  source       = "./modules/virtual-network"
+  resource_group_name = azurerm_resource_group.qe_rg.name
+  vnet_name      = "vnet-qe-${var.environment}"
+  address_space  = ["10.0.0.0/16"]
+  subnet_name    = "snet-qe-${var.environment}"
+  subnet_prefix  = "10.0.1.0/24"
 }
 
-variable "vnet_name" {
-  type = string
+output "vnet_id" {
+  value = module.vnet.vnet_id
 }
 
-variable "address_space" {
-  type = list(string)
+output "subnet_id" {
+  value = module.vnet.subnet_id
 }
+@"
+| Out-File -FilePath main.tf -Append
 
-variable "subnet_name" {
-  type = string
-}
+terraform plan -out=tfplan-vnet
+terraform apply tfplan-vnet
 
-variable "subnet_prefix" {
-  type = string
-}
+# Verify VNet was created
+az network vnet list --query "[].{name:name, location:location, addressSpace:addressSpace}" --output table
 ```
 
----
-
-## 🚀 Step 3: Deploy Virtual Network via Terraform
-
+**Bash:**
 ```bash
-# From the module-1-iac directory
+cd ai/sre-engineering/module-1-iac
 
-# Update main.tf to include VNet module
+# Add VNet module to main.tf
 cat >> main.tf << 'EOF'
 
 # Virtual Network Module
@@ -333,7 +347,6 @@ output "subnet_id" {
 }
 EOF
 
-# Plan and apply
 terraform plan -out=tfplan-vnet
 terraform apply tfplan-vnet
 
@@ -343,7 +356,7 @@ az network vnet list --query "[].{name:name, location:location, addressSpace:add
 
 ---
 
-## 🚀 Step 4: Create Storage Account
+## 🚀 Step 5: Create Storage Account
 
 **File:** `modules/storage-account/main.tf`
 
@@ -405,6 +418,19 @@ output "primary_connection_string" {
 
 **Always destroy resources when done learning to avoid charges.**
 
+**PowerShell:**
+```powershell
+# Plan the destruction
+terraform plan -destroy
+
+# Destroy all resources
+terraform destroy -auto-approve
+
+# Verify all resources are gone
+az group list --query "[?name=='rg-qe-lab-dev']" --output table
+```
+
+**Bash:**
 ```bash
 # Plan the destruction
 terraform plan -destroy
@@ -414,7 +440,6 @@ terraform destroy -auto-approve
 
 # Verify all resources are gone
 az group list --query "[?name=='rg-qe-lab-dev']" --output table
-# Should return empty array if successfully deleted
 ```
 
 ---
@@ -422,12 +447,12 @@ az group list --query "[?name=='rg-qe-lab-dev']" --output table
 ## 🧪 Verification Checklist
 
 - [ ] `terraform init` completed successfully
-*   `terraform validate` passed without errors
-*   `terraform plan` showed expected resources
-*   `terraform apply` created resources successfully
-*   Azure Portal shows resources created
-*   `terraform destroy` removed all resources
-*   No orphaned resources in Azure Portal
+- [ ] `terraform validate` passed without errors
+- [ ] `terraform plan` showed expected resources
+- [ ] `terraform apply` created resources successfully
+- [ ] Azure Portal shows resources created
+- [ ] `terraform destroy` removed all resources
+- [ ] No orphaned resources in Azure Portal
 
 ---
 
@@ -435,6 +460,14 @@ az group list --query "[?name=='rg-qe-lab-dev']" --output table
 
 Once Phase 1 is complete, proceed to **Module 2: Containers** to learn Docker and Kubernetes deployment.
 
+**PowerShell:**
+```powershell
+cd ../module-2-containers
+Get-Content README.md
+```
+
+**Bash:**
 ```bash
-cd ../module-2-containers && cat README.md
+cd ../module-2-containers
+cat README.md
 ```

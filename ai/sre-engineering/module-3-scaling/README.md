@@ -7,6 +7,7 @@
 ## 🎯 Learning Objectives
 
 By completing this module, you will be able to:
+
 - [ ] Configure Horizontal Pod Autoscaler (HPA) in Kubernetes
 - [ ] Configure KEDA for event-driven scaling
 - [ ] Configure Azure App Service auto-scaling
@@ -19,9 +20,12 @@ By completing this module, you will be able to:
 ## 📋 Theory: Scaling Strategies
 
 **Scaling Types:**
-- **Vertical Scaling:** Increase resources (CPU/RAM) of existing instances
-- **Horizontal Scaling:** Add more instances (pods/instances)
-- **Cluster Autoscaling:** Add more nodes to the cluster
+
+| Type | Description |
+|------|-------------|
+| Vertical Scaling | Increase resources (CPU/RAM) of existing instances |
+| Horizontal Scaling | Add more instances (pods/instances) |
+| Cluster Autoscaling | Add more nodes to the cluster |
 
 **Scaling Triggers:**
 - CPU utilization
@@ -77,8 +81,24 @@ spec:
         periodSeconds: 60
 ```
 
-**Apply HPA:**
+### Apply HPA
 
+**PowerShell:**
+```powershell
+cd ai\sre-engineering\module-3-scaling\hpa-configs
+
+# Apply HPA configuration
+kubectl apply -f hpa-basic.yaml
+
+# Check HPA status
+kubectl get hpa
+kubectl get hpa qe-automation-hpa -o yaml
+
+# Watch HPA changes
+kubectl get hpa qe-automation-hpa -w
+```
+
+**Bash:**
 ```bash
 cd ai/sre-engineering/module-3-scaling/hpa-configs
 
@@ -95,6 +115,31 @@ kubectl get hpa qe-automation-hpa -w
 
 ### Test HPA with Load
 
+**PowerShell:**
+```powershell
+# Get service IP
+$EXTERNAL_IP = (kubectl get service qe-automation-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+Write-Host "External IP: $EXTERNAL_IP"
+
+# Generate load using curl in a loop
+1..100 | ForEach-Object {
+  curl -s "http://$EXTERNAL_IP/" > $null
+}
+
+# Wait for HPA to scale up
+Write-Host "Waiting for HPA to scale up..."
+kubectl get hpa qe-automation-hpa -w
+
+# Check pod count
+kubectl get pods -l app=qe-automation-app
+
+# Stop load and watch scale down
+Write-Host "Stopping load - watching scale down..."
+kubectl get hpa qe-automation-hpa -w
+kubectl get pods -l app=qe-automation-app
+```
+
+**Bash:**
 ```bash
 # Get service IP
 EXTERNAL_IP=$(kubectl get service qe-automation-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
@@ -102,7 +147,7 @@ echo "External IP: $EXTERNAL_IP"
 
 # Generate load using curl in a loop
 for i in {1..100}; do
-  curl -s http://$EXTERNAL_IP/ > /dev/null &
+  curl -s "http://$EXTERNAL_IP/" > /dev/null &
 done
 wait
 
@@ -152,8 +197,30 @@ spec:
       operator: GreaterThan
 ```
 
-**Install KEDA:**
+### Install KEDA
 
+**PowerShell:**
+```powershell
+# Add KEDA Helm repository
+helm repo add kedacore https://kedacore.github.io/charts
+helm repo update
+
+# Install KEDA
+helm install kedacore kedacore/keda --namespace keda --create-namespace
+
+# Verify KEDA installation
+kubectl get pods -n keda
+kubectl get crds | grep keda
+
+# Apply ScaledObject
+kubectl apply -f keda-configs/keda-scaledobject.yaml
+
+# Verify ScaledObject
+kubectl get scaledobject
+kubectl get scaledobject qe-api-scaler -o yaml
+```
+
+**Bash:**
 ```bash
 # Add KEDA Helm repository
 helm repo add kedacore https://kedacore.github.io/charts
@@ -178,8 +245,58 @@ kubectl get scaledobject qe-api-scaler -o yaml
 
 ## 🚀 Step 3: Azure App Service Auto-Scaling
 
-**Create App Service Plan with Auto-scale:**
+**PowerShell:**
+```powershell
+# Create App Service Plan
+az appservice plan create `
+    --name asp-qe-lab `
+    --resource-group rg-qe-lab `
+    --sku S1 `
+    --number-of-workers 1 `
+    --location eastus
 
+# Create Web App
+$APP_NAME = "qe-app-$(Get-Date -Format 'yyyyMMddHHmmss')"
+az webapp create `
+    --resource-group rg-qe-lab `
+    --plan asp-qe-lab `
+    --name $APP_NAME `
+    --runtime "NODE|18-lts"
+
+# Configure auto-scale rules
+az monitor autoscale create `
+    --resource-group rg-qe-lab `
+    --resource "/subscriptions/$(az account show --query id -otsv)/resourceGroups/rg-qe-lab/providers/Microsoft.Web/serverfarms/asp-qe-lab" `
+    --name autoscale-qe-app `
+    --min 2 `
+    --max 10 `
+    --count 2
+
+# Add CPU-based scale rule
+az monitor autoscale rule create `
+    --resource-group rg-qe-lab `
+    --autoscale-name autoscale-qe-app `
+    --condition "Percentage CPU > 70 avg 5m" `
+    --scale out 1 `
+    --cooldown 5 `
+    --time-grain 1m `
+    --time-window 5m
+
+# Add scale-in rule
+az monitor autoscale rule create `
+    --resource-group rg-qe-lab `
+    --autoscale-name autoscale-qe-app `
+    --condition "Percentage CPU < 30 avg 5m" `
+    --scale in 1 `
+    --cooldown 5 `
+    --time-grain 1m `
+    --time-window 5m
+
+# Verify autoscale configuration
+az monitor autoscale show --resource-group rg-qe-lab --name autoscale-qe-app --output table
+```
+
+**Bash:**
 ```bash
 # Create App Service Plan
 az appservice plan create \
@@ -190,10 +307,11 @@ az appservice plan create \
   --location eastus
 
 # Create Web App
+APP_NAME="qe-app-$(date +%s)"
 az webapp create \
   --resource-group rg-qe-lab \
   --plan asp-qe-lab \
-  --name qe-app-$(date +%s) \
+  --name $APP_NAME \
   --runtime "NODE|18-lts"
 
 # Configure auto-scale rules
@@ -233,6 +351,26 @@ az monitor autoscale show --resource-group rg-qe-lab --name autoscale-qe-app --o
 
 ## 🚀 Step 4: Test Auto-scaling Under Load
 
+**PowerShell:**
+```powershell
+# Get Application URL
+$WEBAPP_URL = (az webapp show --resource-group rg-qe-lab --name qe-app-$(az webapp list --resource-group rg-qe-lab --query "[0].name" -o tsv) --query defaultHostName -otsv)
+Write-Host "Web App URL: https://$WEBAPP_URL"
+
+# Generate load using curl in parallel
+1..200 | ForEach-Object {
+  curl -s "https://$WEBAPP_URL/" > $null
+}
+Wait-Event -Timeout 60
+
+# Monitor scaling
+az monitor autoscale show --resource-group rg-qe-lab --name autoscale-qe-app --output table
+
+# Check instance count
+az webapp list-instances --resource-group rg-qe-lab --name qe-app-$(az webapp list --resource-group rg-qe-lab --query "[0].name" -o tsv) --output table
+```
+
+**Bash:**
 ```bash
 # Get Application URL
 WEBAPP_URL=$(az webapp show --resource-group rg-qe-lab --name qe-app-$(date +%s) --query defaultHostName -o tsv)
@@ -255,7 +393,7 @@ az webapp list-instances --resource-group rg-qe-lab --name qe-app-$(az webapp li
 
 ## 🧪 Verification Checklist
 
-- [ ] HPA created and visible in Kubernetes
+- [ ] Horizontal Pod Autoscaler (HPA) configured
 - [ ] HPA scales up under load
 - [ ] HPA scales down after load decreases
 - [ ] KEDA installed and ScaledObject configured
@@ -267,8 +405,16 @@ az webapp list-instances --resource-group rg-qe-lab --name qe-app-$(az webapp li
 
 ## 🔗 Next Steps
 
-Once Phase 3 is complete, proceed to **Module 4: Monitoring & Observability** to learn about Azure Monitor, Application Insights, and log analytics.
+Once Phase 3 is complete, proceed to **Module 4: Monitoring & Observability**.
 
+**PowerShell:**
+```powershell
+cd ../module-4-monitoring
+Get-Content README.md
+```
+
+**Bash:**
 ```bash
-cd ../module-4-monitoring && cat README.md
+cd ../module-4-monitoring
+cat README.md
 ```

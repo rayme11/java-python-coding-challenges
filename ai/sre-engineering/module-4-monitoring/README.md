@@ -7,6 +7,7 @@
 ## 🎯 Learning Objectives
 
 By completing this module, you will be able to:
+
 - [ ] Create and configure Azure Monitor workspace
 - [ ] Instrument applications with Application Insights
 - [ ] Create custom dashboards with charts and metrics
@@ -20,13 +21,14 @@ By completing this module, you will be able to:
 ## 📋 Theory: Observability Pillars
 
 **Three Pillars of Observability:**
+
 | Pillar | Purpose | Tools |
 |--------|---------|-------|
 | Metrics | Numeric data over time | Azure Monitor Metrics, Prometheus |
 | Logs | Structured text events | Log Analytics, Application Insights |
 | Traces | Request flow across services | Application Insights, OpenTelemetry |
 
-**Additional:**
+**Additional Concepts:**
 - **SLOs:** Service Level Objectives (availability, latency, error rate)
 - **SLIs:** Service Level Indicators (measurable metrics)
 - **Error Budgets:** Allowable downtime/errors
@@ -35,6 +37,30 @@ By completing this module, you will be able to:
 
 ## 🛠️ Step 1: Create Azure Monitor Workspace
 
+**PowerShell:**
+```powershell
+# Create Log Analytics workspace
+az monitor log-analytics workspace create `
+    --resource-group rg-qe-lab `
+    --workspace-name law-qe-lab `
+    --location eastus
+
+# Get workspace ID
+$WORKSPACE_ID = (az monitor log-analytics workspace show `
+    --resource-group rg-qe-lab `
+    --workspace-name law-qe-lab `
+    --query customerId -otsv)
+Write-Host "Workspace ID: $WORKSPACE_ID"
+
+# Get workspace key
+$WORKSPACE_KEY = (az monitor log-analytics workspace get-shared-keys `
+    --resource-group rg-qe-lab `
+    --workspace-name law-qe-lab `
+    --query primarySharedKey -otsv)
+Write-Host "Workspace Key: $WORKSPACE_KEY"
+```
+
+**Bash:**
 ```bash
 # Create Log Analytics workspace
 az monitor log-analytics workspace create \
@@ -61,6 +87,31 @@ echo "Workspace Key: $WORKSPACE_KEY"
 
 ## 🚀 Step 2: Enable Application Insights
 
+**PowerShell:**
+```powershell
+# Create Application Insights resource
+az monitor app-insights component create `
+    --app app-insights-qe-lab `
+    --location eastus `
+    --resource-group rg-qe-lab `
+    --kind web
+
+# Get instrumentation key
+$APP_INSIGHTS_KEY = (az monitor app-insights component show `
+    --app app-insights-qe-lab `
+    --resource-group rg-qe-lab `
+    --query instrumentationKey -otsv)
+Write-Host "Instrumentation Key: $APP_INSIGHTS_KEY"
+
+# Get connection string
+$CONNECTION_STRING = (az monitor app-insights component show `
+    --app app-insights-qe-lab `
+    --resource-group rg-qe-lab `
+    --query connectionString -otsv)
+Write-Host "Connection String: $CONNECTION_STRING"
+```
+
+**Bash:**
 ```bash
 # Create Application Insights resource
 az monitor app-insights component create \
@@ -84,54 +135,9 @@ CONNECTION_STRING=$(az monitor app-insights component show \
 echo "Connection String: $CONNECTION_STRING"
 ```
 
-### Update Application with Application Insights
-
-**File:** `module-2-containers/dockerfiles/node-app/app.js` (add instrumentation)
-
-```javascript
-const appInsights = require("applicationinsights");
-appInsights.setup(process.env.APPLICATIONINSIGHTS_INSTRUMENTATIONKEY).start();
-
-const appInsightsClient = appInsights.defaultClient;
-
-app.use((req, res, next) => {
-  appInsightsClient.trackRequest({
-    name: req.method + ' ' + req.url,
-    url: req.url,
-    duration: 0,
-    resultCode: 200,
-    success: true
-  });
-  res.on('finish', () => {
-    appInsightsClient.trackRequest({
-      name: req.method + ' ' + req.url,
-      url: req.url,
-      duration: res.getHeader('X-Response-Time') || 0,
-      resultCode: res.statusCode,
-      success: res.statusCode < 400
-    });
-  });
-  next();
-});
-
-app.use((req, res, next) => {
-  const start = Date.now();
-  res.setHeader('X-Response-Time', Date.now() - start);
-  next();
-});
-```
-
-Rebuild and deploy:
-```bash
-docker build -t $ACR_NAME.azurecr.io/qe-automation-app:v2.0.0 .
-docker push $ACR_NAME.azurecr.io/qe-automation-app:v2.0.0
-
-kubectl set image deployment/qe-automation-app qe-automation-app=$ACR_NAME.azurecr.io/qe-automation-app:v2.0.0
-```
-
 ---
 
-## 📊 Step 3: Create Custom Dashboard
+## 🚀 Step 3: Create Custom Dashboard
 
 **File:** `dashboards/qe-dashboard.json`
 
@@ -194,6 +200,19 @@ kubectl set image deployment/qe-automation-app qe-automation-app=$ACR_NAME.azure
 
 **Deploy Dashboard:**
 
+**PowerShell:**
+```powershell
+# Deploy dashboard via Azure CLI
+az deployment group create `
+    --resource-group rg-qe-lab `
+    --template-file ai/sre-engineering/module-4-monitoring/dashboards/qe-dashboard.json `
+    --parameters workspaceName=law-qe-lab appInsightsName=app-insights-qe-lab
+
+# View dashboard in Azure Portal
+# Navigate to: Monitor -> Dashboards -> qe-dashboard
+```
+
+**Bash:**
 ```bash
 # Deploy dashboard via Azure CLI
 az deployment group create \
@@ -260,6 +279,34 @@ az deployment group create \
 
 **Create Alert Rules:**
 
+**PowerShell:**
+```powershell
+# Create Action Group for email notifications
+az monitor action-group create `
+    --resource-group rg-qe-lab `
+    --name alert-action-group `
+    --short-name qe-alerts
+
+# Add email action
+az monitor action-group email create `
+    --resource-group rg-qe-lab `
+    --action-group alert-action-group `
+    --name QE-Team-Email `
+    --to admin@yourcompany.com
+
+# Create alert rule
+az monitor alert rule create `
+    --resource-group rg-qe-lab `
+    --name alert-high-cpu `
+    --action alert-action-group `
+    --condition "Percentage CPU > 80 avg 5m" `
+    --description "Alert when CPU usage exceeds 80%"
+
+# List alert rules
+az monitor alert rule list --resource-group rg-qe-lab --output table
+```
+
+**Bash:**
 ```bash
 # Create Action Group for email notifications
 az monitor action-group create \
@@ -290,7 +337,7 @@ az monitor alert rule list --resource-group rg-qe-lab --output table
 
 ## 📊 Step 5: KQL Queries for Analysis
 
-**Save as:** `kql-queries.txt`
+**File:** `kql-queries.txt`
 
 ```kusto
 // Request rate over time
@@ -342,6 +389,18 @@ ContainerInsights
 
 **Run KQL Queries:**
 
+**PowerShell:**
+```powershell
+# Query via Azure CLI
+az monitor log-analytics query `
+    --resource-group rg-qe-lab `
+    --workspace law-qe-lab `
+    --analytics-query 'requests | summarize count() by bin(timestamp, 1m) | render timechart' `
+    --timespan PT1H `
+    --output table
+```
+
+**Bash:**
 ```bash
 # Query via Azure CLI
 az monitor log-analytics query \
@@ -370,6 +429,14 @@ az monitor log-analytics query \
 
 Once Phase 4 is complete, proceed to **Module 5: Load Testing** to learn how to stress test your application with Azure Load Testing and Locust.
 
+**PowerShell:**
+```powershell
+cd ../module-5-load-testing
+Get-Content README.md
+```
+
+**Bash:**
 ```bash
-cd ../module-5-load-testing && cat README.md
+cd ../module-5-load-testing
+cat README.md
 ```

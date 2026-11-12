@@ -1,36 +1,37 @@
 # SRE Engineering Track: Scalability, Automation & AI-Driven Operations
 
-> **Target Role:** Site Reliability Engineer (SRE), DevOps Engineer, Platform Engineer, Cloud Infrastructure Engineer  
+> **Role:** Site Reliability Engineer (SRE), DevOps Engineer, Platform Engineer, Cloud Infrastructure Engineer  
 > **Track:** SRE Engineering - Scalability, Automation & AI-Driven Operations  
 > **Environment:** Azure, Terraform, Docker, Kubernetes, Playwright, Python, GitHub Actions  
 > **Status:** Active  
-> **Job Alignment:** Verizon, Trimble, Palo Alto Networks, CIBC - SRE / QE Automation Manager Roles
+> **Job Alignment:** Verizon, Trimble, Palo Alto Networks, CIBC - SRE / QE Automation Manager Roles  
+> **OS:** Windows PowerShell & Linux/macOS Bash
 
 ---
 
-## 🎯 Track Overview
+## 📋 Track Overview
 
 This hands-on training path teaches you how to build, scale, and operate production-grade systems using enterprise-grade tooling. You will learn Infrastructure as Code (Terraform/Bicep), container orchestration (Docker/Kubernetes), autoscaling strategies, real-time monitoring & alerting, load testing, and AI-driven operations (AIOps).
 
 **Each module includes:**
 - **Theory** - Concepts and why they matter
-- **Hands-on Lab** - Step-by-step terminal commands you can run
+- **Hands-on Lab** - Step-by-step terminal commands (PowerShell & Bash)
 - **Azure Integration** - How to deploy to Azure cloud
 - **AI Integration** - How AI enhances each phase
 - **Verification** - How to verify your implementation works
 
 ---
 
-## 📋 Track Modules
+## 📋 Track Structure
 
 | Module | Title | Focus | Technologies |
 |--------|-------|-------|--------------|
 | Module 1 | Infrastructure as Code | Terraform + Bicep + Azure Resources | Terraform, Bicep, Azure CLI |
-| Module 2 | Containers | Docker + Kubernetes/AKS | Docker, kubectl, Helm |
-| Module 3 | Scaling & Autoscaling | HPA + KEDA + Azure App Service | Azure App Service, KEDA, HPA |
-| Module 4 | Monitoring & Observability | Azure Monitor + App Insights + Dashboards | Azure Monitor, Log Analytics |
-| Module 5 | Load Testing | Azure Load Testing + Locust + JMeter | Azure Load Testing, Locust |
-| Module 6 | AI for SRE (AIOps) | Anomaly Detection + Auto-Remediation | Python, Azure ML, OpenAI |
+| Module 2 | Containers | Docker & Kubernetes/AKS | Docker, kubectl, Helm |
+| Module 3 | Scaling & Autoscaling | HPA, KEDA, Azure App Service | HPA, KEDA, Azure App Service |
+| Module 4 | Monitoring & Observability | Azure Monitor, App Insights | Azure Monitor, Log Analytics |
+| Module 5 | Load Testing | Azure Load Testing, Locust, JMeter | Azure Load Testing, Locust |
+| Module 6 | AI for SRE (AIOps) | Anomaly Detection, Auto-Remediation | Python, Azure ML, OpenAI |
 | Module 7 | CI/CD Pipelines | GitHub Actions for SRE | GitHub Actions, Terraform |
 
 ---
@@ -38,24 +39,53 @@ This hands-on training path teaches you how to build, scale, and operate product
 ## 🚀 Quick Start
 
 ### Prerequisites
+
+**Windows PowerShell:**
+```powershell
+# Install Azure CLI
+winget install Microsoft.AzureCLI
+
+# Install Terraform
+winget install HashiCorp.Terraform
+
+# Install Docker Desktop
+winget install Docker.DockerDesktop
+
+# Install kubectl
+winget install Kubernetes.kubectl
+
+# Install Helm
+winget install Helm.Helm
+
+# Verify installations
+az --version
+terraform --version
+docker --version
+kubectl version --client
+helm version
+
+# Login to Azure
+az login
+```
+
+**Linux/macOS Bash:**
 ```bash
-# Install required tools
-# Azure CLI
+# Install Azure CLI
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-# Terraform
+# Install Terraform
 wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 sudo apt update && sudo apt install terraform
 
-# Docker
+# Install Docker
 curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
 
-# kubectl
+# Install kubectl
 curl -LO "https://dl.k8s.io/release/$(curl -L https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 
-# Helm
+# Install Helm
 curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | sudo tee /usr/share/keyrings/helm.gpg > /dev/null
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
 sudo apt update && sudo apt install helm
@@ -143,15 +173,15 @@ By completing this track, you will be able to:
 
 ## 🚀 Quick Navigation
 
-| Next Step | Command |
-|-----------|---------|
-| Start Module 1 (IaC) | `cd ai/sre-engineering/module-1-iac && cat README.md` |
-| Start Module 2 (Containers) | `cd ai/sre-engineering/module-2-containers && cat README.md` |
-| Start Module 3 (Scaling) | `cd ai/sre-engineering/module-3-scaling && cat README.md` |
-| Start Module 4 (Monitoring) | `cd ai/sre-engineering/module-4-monitoring && cat README.md` |
-| Start Module 5 (Load Testing) | `cd ai/sre-engineering/module-5-load-testing && cat README.md` |
-| Start Module 6 (AI for SRE) | `cd ai/sre-engineering/module-6-ai-sre && cat README.md` |
-| Start Module 7 (CI/CD) | `cd ai/sre-engineering/module-7-cicd && cat README.md` |
+| Next Step | PowerShell Command | Bash Command |
+|-----------|-------------------|--------------|
+| Start Module 1 (IaC) | `cd ai\sre-engineering\module-1-iac` | `cd ai/sre-engineering/module-1-iac` |
+| Start Module 2 (Containers) | `cd ai\sre-engineering\module-2-containers` | `cd ai/sre-engineering/module-2-containers` |
+| Start Module 3 (Scaling) | `cd ai\sre-engineering\module-3-scaling` | `cd ai/sre-engineering/module-3-scaling` |
+| Start Module 4 (Monitoring) | `cd ai\sre-engineering\module-4-monitoring` | `cd ai/sre-engineering/module-4-monitoring` |
+| Start Module 5 (Load Testing) | `cd ai\sre-engineering\module-5-load-testing` | `cd ai/sre-engineering/module-5-load-testing` |
+| Start Module 6 (AI for SRE) | `cd ai\sre-engineering\module-6-ai-sre` | `cd ai/sre-engineering/module-6-ai-sre` |
+| Start Module 7 (CI/CD) | `cd ai\sre-engineering\module-7-cicd` | `cd ai/sre-engineering/module-7-cicd` |
 
 ---
 

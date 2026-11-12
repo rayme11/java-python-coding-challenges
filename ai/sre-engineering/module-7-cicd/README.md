@@ -1,10 +1,47 @@
-# GitHub Actions CI/CD for SRE
+# Module 7: CI/CD Pipelines
 
-> **Workflow:** Automated CI/CD pipeline for SRE workloads including infrastructure, application deployment, security scanning, and load testing.
+> **Objective:** Build complete CI/CD pipelines for SRE workflows including infrastructure deployment, application deployment, security scanning, and automated testing.
 
 ---
 
-## Workflow File: `.github/workflows/sre-ci.yml`
+## 🎯 Learning Objectives
+
+By completing this module, you will be able to:
+
+- [ ] Create GitHub Actions workflows
+- [ ] Deploy infrastructure with Terraform via CI/CD
+- [ ] Deploy applications to AKS via CI/CD
+- [ ] Run security scanning (SAST, DAST, dependency scanning)
+- [ ] Run load tests in CI/CD
+- [ ] Implement approval gates and manual approvals
+- [ ] Create multi-environment deployment pipelines
+
+---
+
+## 📋 Theory: CI/CD for SRE
+
+**Pipeline Stages:**
+
+| Stage | Purpose | Tools |
+|-------|---------|-------|
+| Build | Compile and package code | Docker, Maven, npm |
+| Test | Run unit and integration tests | pytest, JUnit, Playwright |
+| Security | Scan for vulnerabilities | Trivy, Snyk, CodeQL |
+| Deploy | Deploy to staging/production | kubectl, Terraform, Azure CLI |
+| Test | Run integration/load tests | Playwright, Locust, JMeter |
+| Notify | Notify on success/failure | Slack, Email, Teams |
+
+**Pipeline Patterns:**
+- **Feature Branch:** Build and test on PR
+- **Main Branch:** Build, test, deploy to staging
+- **Release Tag:** Deploy to production
+- **Scheduled:** Nightly security scans, load tests
+
+---
+
+## 🛠️ Step 1: Create CI/CD Workflow
+
+**File:** `.github/workflows/sre-ci.yml`
 
 ```yaml
 name: SRE CI Pipeline
@@ -164,26 +201,36 @@ jobs:
         run: |
           echo "Pipeline completed for ${{ github.ref }}"
           echo "Status: ${{ job.status }}"
-          echo "Actions: Review GitHub Actions tab for details"
 ```
 
 ---
 
-## 📋 Required GitHub Secrets
+## 🚀 Step 2: Create GitHub Secrets
 
-| Secret Name | Description | Example |
-|-------------|-------------|---------|
-| `AZURE_CLIENT_ID` | Service Principal client ID | `xxxx-xxxx-xxxx` |
+Required secrets in GitHub Repository Settings > Secrets and variables > Actions:
+
+| Secret Name | Description | Example Value |
+|-------------|-------------|---------------|
+| `AZURE_CLIENT_ID` | Azure AD Service Principal client ID | `xxxx-xxxx-xxxx` |
 | `AZURE_CLIENT_SECRET` | Azure AD Service Principal secret | `xxxx-xxxx-xxxx` |
 | `AZURE_TENANT_ID` | Azure AD tenant ID | `xxxx-xxxx-xxxx` |
 | `AZURE_SUBSCRIPTION_ID` | Azure subscription ID | `xxxx-xxxx-xxxx` |
 | `ACR_NAME` | Azure Container Registry name | `acrqe12345` |
 | `ACR_USERNAME` | ACR username | `acrqe12345` |
 | `ACR_PASSWORD` | ACR password | `xxxx-xxxx-xxxx` |
-| `WEB_APP_URL` | Web application URL | `https://qe-app.azurewebsites.net` |
 
 ### Create Service Principal:
 
+**PowerShell:**
+```powershell
+az ad sp create-for-rbac `
+    --name "qe-sre-github-actions" `
+    --role contributor `
+    --scopes /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/rg-qe-lab `
+    --sdk-auth
+```
+
+**Bash:**
 ```bash
 az ad sp create-for-rbac \
   --name "qe-sre-github-actions" \
@@ -194,9 +241,9 @@ az ad sp create-for-rbac \
 
 ---
 
-## 🔄 CD Pipeline (`sre-cd.yml`)
+## 🚀 Step 3: Create Deployment Workflow for Production
 
-For production deployments triggered by GitHub releases:
+**File:** `.github/workflows/sre-cd.yml`
 
 ```yaml
 name: SRE CD Pipeline
@@ -217,6 +264,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
+      url: https://qe-app-prod.azurewebsites.net
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -253,12 +301,39 @@ jobs:
 
 ---
 
-## 📊 Pipeline Status Badges
+## 🧪 Verification Checklist
 
-Add to your README:
+- [ ] GitHub Actions workflow created
+- [ ] Secrets configured in GitHub repository
+- [ ] CI pipeline runs on push
+- [ ] Security scanning runs (Trivy, CodeQL)
+- [ ] Docker image builds and pushes to ACR
+- [ ] Application deploys to AKS
+- [ ] Load tests run in CI
+- [ ] Production deployment workflow works
+- [ ] Pipeline notifications configured
 
-```markdown
-[![SRE CI Pipeline](https://github.com/your-username/java-python-coding-challenges/actions/workflows/sre-ci.yml/badge.svg)](https://github.com/your-username/java-python-coding-challenges/actions/workflows/sre-ci.yml)
+---
 
-[![SRE CD Pipeline](https://github.com/your-username/java-python-coding-challenges/actions/workflows/sre-cd.yml/badge.svg)](https://github.com/your-username/java-python-coding-challenges/actions/workflows/sre-cd.yml)
-```
+## 🔗 Next Steps
+
+You have completed the full SRE Engineering track! You now have hands-on experience with:
+
+- Infrastructure as Code (Terraform)
+- Container Orchestration (Docker, Kubernetes/AKS)
+- Auto-scaling (HPA, KEDA, Azure App Service)
+- Monitoring & Observability (Azure Monitor, App Insights)
+- Load Testing (Azure Load Testing, Locust, JMeter)
+- AI for SRE (Anomaly detection, automated remediation)
+- CI/CD Pipelines (GitHub Actions)
+
+**Next Steps:**
+- Pursue CKA (Certified Kubernetes Administrator)
+- Pursue Azure Administrator (AZ-104) or Azure DevOps Engineer (AZ-400)
+- Build more complex multi-region architectures
+- Implement chaos engineering with Chaos Mesh
+- Implement service mesh (Istio, Linkerd)
+
+---
+
+*Generated for AI-Enhanced Enterprise Automation & Governance Track - SRE Engineering Specialization*

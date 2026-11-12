@@ -7,6 +7,7 @@
 ## 🎯 Learning Objectives
 
 By completing this module, you will be able to:
+
 - [ ] Write Dockerfiles for containerized applications
 - [ ] Build and push container images to Azure Container Registry (ACR)
 - [ ] Deploy containers to Azure Kubernetes Service (AKS)
@@ -19,12 +20,16 @@ By completing this module, you will be able to:
 ## 📋 Theory: Containerization & Orchestration
 
 **Why Containers?**
-- **Consistency:** "Works on my machine" → "Works everywhere"
-- **Isolation:** Each service runs in its own isolated environment
-- **Density:** More efficient resource utilization than VMs
-- **Portability:** Run anywhere Docker/Kubernetes is supported
+
+| Benefit | Description |
+|---------|-------------|
+| Consistency | "Works on my machine" → "Works everywhere" |
+| Isolation | Each service runs in its own isolated environment |
+| Density | More efficient resource utilization than VMs |
+| Portability | Run anywhere Docker/Kubernetes is supported |
 
 **Docker vs Kubernetes:**
+
 | Feature | Docker | Kubernetes (AKS) |
 |---------|--------|------------------|
 | Purpose | Build & run containers | Orchestrate containers |
@@ -124,16 +129,33 @@ CMD ["node", "app.js"]
 
 ## 🚀 Step 2: Build and Run Locally
 
+### Install Dependencies
+
+**PowerShell:**
+```powershell
+cd ai\sre-engineering\module-2-containers\dockerfiles\node-app
+npm install
+npm start
+```
+
+**Bash:**
 ```bash
 cd ai/sre-engineering/module-2-containers/dockerfiles/node-app
-
-# Install dependencies locally (for testing)
 npm install
-
-# Start the application locally
 npm start
+```
 
-# In another terminal, test the API
+### Test the Application Locally
+
+**PowerShell:**
+```powershell
+curl http://localhost:3000/
+curl http://localhost:3000/health
+curl http://localhost:3000/ready
+```
+
+**Bash:**
+```bash
 curl http://localhost:3000/
 curl http://localhost:3000/health
 curl http://localhost:3000/ready
@@ -153,7 +175,31 @@ curl http://localhost:3000/ready
 
 ## 🚀 Step 3: Build Docker Image
 
+**PowerShell:**
+```powershell
+cd ai\sre-engineering\module-2-containers\dockerfiles\node-app
+
+# Build Docker image
+docker build -t qe-automation-app:latest .
+
+# Verify image was created
+docker images | Select-String "qe-automation"
+
+# Run container locally
+docker run -d -p 3000:3000 --name qe-app qe-automation-app:latest
+
+# Test the running container
+curl http://localhost:3000/
+
+# Stop and remove container
+docker stop qe-app
+docker rm qe-app
+```
+
+**Bash:**
 ```bash
+cd ai/sre-engineering/module-2-containers/dockerfiles/node-app
+
 # Build Docker image
 docker build -t qe-automation-app:latest .
 
@@ -175,6 +221,41 @@ docker rm qe-app
 
 ## 🚀 Step 4: Push to Azure Container Registry (ACR)
 
+**PowerShell:**
+```powershell
+# Login to Azure
+az login
+
+# Create or select resource group
+az group create --name rg-qe-lab --location eastus
+
+# Create Azure Container Registry
+$ACR_NAME = "acrqe$(Get-Date -Format 'yyyyMMddHHmmss')"
+az acr create `
+    --name $ACR_NAME `
+    --resource-group rg-qe-lab `
+    --location eastus `
+    --sku Basic
+
+# Get ACR login server name
+$ACR_LOGIN_SERVER = (az acr show --name $ACR_NAME --query loginServer -o tsv)
+echo "ACR Login Server: $ACR_LOGIN_SERVER"
+
+# Login to ACR
+az acr login --name $ACR_NAME
+
+# Tag image for ACR
+docker tag qe-automation-app:latest $ACR_NAME.azurecr.io/qe-automation-app:v1.0.0
+
+# Push image to ACR
+docker push $ACR_NAME.azurecr.io/qe-automation-app:v1.0.0
+
+# Verify image in ACR
+az acr repository list --name $ACR_NAME --output table
+az acr repository show-tags --name $ACR_NAME --repository qe-automation-app --output table
+```
+
+**Bash:**
 ```bash
 # Login to Azure
 az login
@@ -183,15 +264,16 @@ az login
 az group create --name rg-qe-lab --location eastus
 
 # Create Azure Container Registry
+ACR_NAME=acrqe$(date +%s)
 az acr create \
-  --name acrqelab$(date +%s) \
+  --name $ACR_NAME \
   --resource-group rg-qe-lab \
   --location eastus \
   --sku Basic
 
 # Get ACR login server name
-ACR_NAME=acrqe$(date +%s)
-az acr show --name $ACR_NAME --query loginServer --output tsv
+ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query loginServer -o tsv)
+echo "ACR Login Server: $ACR_LOGIN_SERVER"
 
 # Login to ACR
 az acr login --name $ACR_NAME
@@ -213,6 +295,26 @@ az acr repository show-tags --name $ACR_NAME --repository qe-automation-app --ou
 
 ### Create AKS Cluster
 
+**PowerShell:**
+```powershell
+# Create AKS cluster
+az aks create `
+    --resource-group rg-qe-lab `
+    --name aks-qe-lab `
+    --node-count 2 `
+    --node-vm-size Standard_D2s_v3 `
+    --enable-addons monitoring `
+    --generate-ssh-keys
+
+# Get kubectl credentials
+az aks get-credentials --resource-group rg-qe-lab --name aks-qe-lab
+
+# Verify cluster connectivity
+kubectl get nodes
+kubectl get nodes -o wide
+```
+
+**Bash:**
 ```bash
 # Create AKS cluster
 az aks create \
@@ -231,7 +333,7 @@ kubectl get nodes
 kubectl get nodes -o wide
 ```
 
-### Deploy Application to AKS
+### Deploy Application to Kubernetes
 
 **File:** `k8s-manifests/deployment.yaml`
 
@@ -323,6 +425,30 @@ spec:
 
 ### Deploy to Kubernetes
 
+**PowerShell:**
+```powershell
+cd ai\sre-engineering\module-2-containers\k8s-manifests
+
+# Apply all Kubernetes resources
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+kubectl apply -f hpa.yaml
+
+# Check deployment status
+kubectl get deployments
+kubectl get pods
+kubectl get services
+
+# Wait for external IP
+kubectl get service qe-automation-service -w
+
+# Once EXTERNAL-IP has an IP address, test the application
+$EXTERNAL_IP = (kubectl get service qe-automation-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+curl http://$EXTERNAL_IP/
+curl http://$EXTERNAL_IP/health
+```
+
+**Bash:**
 ```bash
 cd ai/sre-engineering/module-2-containers/k8s-manifests
 
@@ -336,10 +462,10 @@ kubectl get deployments
 kubectl get pods
 kubectl get services
 
-# Wait for external IP (may take 2-3 minutes)
+# Wait for external IP
 kubectl get service qe-automation-service -w
 
-# Once EXTERNAL-IP has an IP address, test the application
+# Once EXTERNAL_IP has an IP address, test the application
 EXTERNAL_IP=$(kubectl get service qe-automation-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 curl http://$EXTERNAL_IP/
 curl http://$EXTERNAL_IP/health
@@ -347,7 +473,7 @@ curl http://$EXTERNAL_IP/health
 
 ---
 
-## 🚀 Step 5: Helm Chart (Optional - Advanced)
+## 🚀 Step 6: Helm Chart (Optional - Advanced)
 
 **File:** `k8s-manifests/helm/qe-automation/Chart.yaml`
 
@@ -392,6 +518,25 @@ autoscaling:
 
 **Deploy with Helm:**
 
+**PowerShell:**
+```powershell
+cd ai\sre-engineering\module-2-containers\k8s-manifests\helm
+
+# Install Helm chart
+helm install qe-automation ./qe-automation
+
+# Check deployment
+helm list
+kubectl get pods
+
+# Upgrade deployment
+helm upgrade qe-automation ./qe-automation
+
+# Uninstall
+helm uninstall qe-automation
+```
+
+**Bash:**
 ```bash
 cd ai/sre-engineering/module-2-containers/k8s-manifests/helm
 
@@ -416,20 +561,28 @@ helm uninstall qe-automation
 - [ ] Docker image built successfully
 - [ ] Docker image pushed to Azure Container Registry
 - [ ] AKS cluster created successfully
-- *   `kubectl get nodes` shows running nodes
-*   `kubectl get pods` shows running pods
-*   `kubectl get services` shows external IP
-*   Application responds to HTTP requests via external IP
-*   Health endpoint returns healthy status
-*   HPA is configured and visible
-*   Helm chart can deploy/upgrade/uninstall
+- [ ] `kubectl get nodes` shows running nodes
+- [ ] `kubectl get pods` shows running pods
+- [ ] `kubectl get services` shows external IP
+- [ ] Application responds to HTTP requests via external IP
+- [ ] Health endpoint returns healthy status
+- [ ] HPA is configured and visible
+- [ ] Helm chart can deploy/upgrade/uninstall
 
 ---
 
 ## 🔗 Next Steps
 
-Once Phase 2 is complete, proceed to **Module 3: Scaling & Autoscaling** to learn about HPA, KEDA, and Azure App Service scaling.
+Once Phase 2 is complete, proceed to **Module 3: Scaling & Autoscaling**.
 
+**PowerShell:**
+```powershell
+cd ../module-3-scaling
+Get-Content README.md
+```
+
+**Bash:**
 ```bash
-cd ../module-3-scaling && cat README.md
+cd ../module-3-scaling
+cat README.md
 ```

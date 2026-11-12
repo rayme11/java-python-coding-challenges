@@ -1,12 +1,13 @@
 # Module 5: Load Testing (Azure Load Testing, Locust, JMeter)
 
-> **Objective:** Learn to perform load testing using Azure Load Testing, Locust, and JMeter to validate application performance under load.
+> **Objective:** Learn to perform load testing using Azure Load Testing, REST Assured, and Playwright to validate application performance under load.
 
 ---
 
 ## 🎯 Learning Objectives
 
 By completing this module, you will be able to:
+
 - [ ] Create and configure Azure Load Testing resource
 - [ ] Create and run load tests with JMeter scripts
 - [ ] Create and run load tests with Locust Python scripts
@@ -20,7 +21,7 @@ By completing this module, you will be able to:
 
 | Test Type | Purpose | When to Run |
 |-----------|---------|-------------|
-| Load Test | Verify system handles expected load | Before release |
+| Load Test | Assess system behavior under expected load | Before release |
 | Stress Test | Find breaking point | Before major release |
 | Spike Test | Verify recovery from sudden load | Before production |
 | Soak Test | Verify stability over extended time | Before production |
@@ -37,6 +38,23 @@ By completing this module, you will be able to:
 
 ## 🛠️ Step 1: Create Azure Load Testing Resource
 
+**PowerShell:**
+```powershell
+# Create Azure Load Testing resource
+az load create `
+    --name alt-qe-lab `
+    --resource-group rg-qe-lab `
+    --location eastus
+
+# Verify creation
+az load show --name alt-qe-lab --resource-group rg-qe-lab --output table
+
+# Get Load Testing URL
+$ALT_URL = (az load show --name alt-qe-lab --resource-group rg-qe-lab --query properties.uri -otsv)
+Write-Host "Azure Load Testing URL: $ALT_URL"
+```
+
+**Bash:**
 ```bash
 # Create Azure Load Testing resource
 az load create \
@@ -48,14 +66,15 @@ az load create \
 az load show --name alt-qe-lab --resource-group rg-qe-lab --output table
 
 # Get Load Testing URL
-az load show --name alt-qe-lab --resource-group rg-qe-lab --query "properties.uri" -otsv
+ALT_URL=$(az load show --name alt-qe-lab --resource-group rg-qe-lab --query properties.uri -otsv)
+echo "Azure Load Testing URL: $ALT_URL"
 ```
 
 ---
 
 ## 🚀 Step 2: Create JMeter Test Plan
 
-**File:** `jmeter-tests/load-test.jmx` (XML format)
+**File:** `jmeter-tests/load-test.jmx`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -109,9 +128,15 @@ az load show --name alt-qe-lab --resource-group rg-qe-lab --query "properties.ur
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
               <collectionProp name="Arguments.arguments"/>
             </elementProp>
-            <elementProp name="HTTPsampler.HeaderManager" elementType="HeaderManager" testclass="HeaderManager" testclass="HTTP Header Manager" testname="HTTP Header Manager" enabled="true"/>
-          </elementProp>
-          <hashTree/>
+            <elementProp name="HTTPsampler.HeaderManager" elementType="HeaderManager" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.header">
+                <elementProp name="Header" elementType="Header">
+                  <stringProp name="Header.name">Content-Type</stringProp>
+                  <stringProp name="Header.value">application/json</stringProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+          </hashTree>
         </elementProp>
         <HTTPSamplerProxy guiclass="HttpSampleGui" testclass="HTTPSamplerProxy" testname="GET Health" enabled="true">
           <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
@@ -127,7 +152,7 @@ az load show --name alt-qe-lab --resource-group rg-qe-lab --query "properties.ur
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <elementProp name="HTTPsampler.HeaderManager" elementType="HeaderManager" testclass="HeaderManager" testname="HTTP Header Manager" testname="HTTP Header Manager" enabled="true">
+          <elementProp name="HTTPsampler.HeaderManager" elementType="HeaderManager" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
             <collectionProp name="HeaderManager.header">
               <elementProp name="Header" elementType="Header">
                 <stringProp name="Header.name">Content-Type</stringProp>
@@ -138,101 +163,101 @@ az load show --name alt-qe-lab --resource-group rg-qe-lab --query "properties.ur
           <hashTree/>
         </elementProp>
       </hashTree>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="false">
+        <stringProp name="ResultCollector.error_logging">
+          <value>
+          </value>
+        </stringProp>
+        <objProp>
+          <name>saveResults</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</value>
+            <latency>true</value>
+            <timestamp>true</value>
+            <connectTime>true</value>
+            <code>true</value>
+            <message>true</value>
+            <threadName>true</value>
+            <dataType>true</value>
+            <assertions>true</value>
+            <subresults>true</value>
+            <samplerData>true</value>
+            <responseHeaders>false</value>
+            <requestHeaders>true</value>
+            <responseData>false</value>
+            <requestHeaders>true</value>
+            <samplerData>true</value>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </stringProp>
+      <hashTree/>
+      <SummaryReport guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
+        <stringProp name="ResultCollector.error_logging">
+          <value>
+          </value>
+        </stringProp>
+        <objProp>
+          <name>saveResults</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</value>
+            <latency>true</value>
+            <timestamp>true</value>
+            <connectTime>true</value>
+            <code>true</value>
+            <message>true</value>
+            <threadName>true</value>
+            <dataType>true</value>
+            <assertions>true</value>
+            <subresults>true</value>
+            <samplerData>true</value>
+            <responseHeaders>true</value>
+            <requestHeaders>true</value>
+            <responseData>false</value>
+            <requestHeaders>true</value>
+            <samplerData>true</value>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </stringProp>
+      <hashTree/>
+      <AggregateReport guiclass="AggregateReport" testclass="ResultCollector" testname="Aggregate Report" enabled="true">
+        <stringProp name="ResultCollector.error_logging">
+          <value>
+          </value>
+        </stringProp>
+        <objProp>
+          <name>saveResults</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</value>
+            <latency>true</value>
+            <timestamp>true</value>
+            <connectTime>true</value>
+            <code>true</value>
+            <message>true</value>
+            <threadName>true</value>
+            <dataType>true</value>
+            <assertions>true</value>
+            <subresults>true</value>
+            <samplerData>true</value>
+            <responseHeaders>true</value>
+            <requestHeaders>true</value>
+            <responseData>false</value>
+            <requestHeaders>true</value>
+            <samplerData>true</value>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </stringProp>
+      <hashTree/>
     </hashTree>
-    <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="false">
-      <stringProp name="ResultCollector.error_logging">
-        <value>
-        </value>
-      </stringProp>
-      <objProp>
-        <name>saveResults</name>
-        <value class="SampleSaveConfiguration">
-          <time>true</value>
-          <latency>true</value>
-          <timestamp>true</value>
-          <connectTime>true</value>
-          <code>true</value>
-          <message>true</value>
-          <threadName>true</value>
-          <dataType>true</value>
-          <assertions>true</value>
-          <subresults>true</value>
-          <samplerData>true</value>
-          <responseHeaders>false</value>
-          <requestHeaders>true</value>
-          <responseData>false</value>
-          <requestHeaders>true</value>
-          <samplerData>true</value>
-        </value>
-      </objProp>
-      <stringProp name="filename"></stringProp>
-    </elementProp>
-    <hashTree/>
-    <SummaryReport guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
-      <stringProp name="ResultCollector.error_logging">
-        <value>
-        </value>
-      </stringProp>
-      <objProp>
-        <name>saveResults</name>
-        <value class="SampleSaveConfiguration">
-          <time>true</value>
-          <latency>true</value>
-          <timestamp>true</value>
-          <connectTime>true</value>
-          <code>true</value>
-          <message>true</value>
-          <threadName>true</value>
-          <dataType>true</value>
-          <assertions>true</value>
-          <subresults>true</value>
-          <samplerData>true</value>
-          <responseHeaders>true</value>
-          <requestHeaders>true</value>
-          <responseData>false</value>
-          <requestHeaders>true</value>
-          <samplerData>true</value>
-        </value>
-      </objProp>
-      <stringProp name="filename"></stringProp>
-    </elementProp>
-    <hashTree/>
-    <AggregateReport guiclass="AggregateReport" testclass="ResultCollector" testname="Aggregate Report" enabled="true">
-      <stringProp name="ResultCollector.error_logging">
-        <value>
-        </value>
-      </stringProp>
-      <objProp>
-        <name>saveResults</name>
-        <value class="SampleSaveConfiguration">
-          <time>true</value>
-          <latency>true</value>
-          <timestamp>true</value>
-          <connectTime>true</value>
-          <code>true</value>
-          <message>true</value>
-          <threadName>true</value>
-          <dataType>true</value>
-          <assertions>true</value>
-          <subresults>true</value>
-          <samplerData>true</value>
-          <responseHeaders>true</value>
-          <requestHeaders>true</value>
-          <responseData>false</value>
-          <requestHeaders>true</value>
-          <samplerData>true</value>
-        </value>
-      </objProp>
-      <stringProp name="filename"></stringProp>
-    </elementProp>
-    <hashTree/>
   </hashTree>
 </jmeterTestPlan>
 ```
 
 ---
 
-## 🚀 Step 3: Create Locust Test (Python)
+## 🚀 Step 3: Create Locust Test
 
 **File:** `locust-tests/locustfile.py`
 
@@ -240,20 +265,20 @@ az load show --name alt-qe-lab --resource-group rg-qe-lab --query "properties.ur
 from locust import HttpUser, task, between
 
 class QEApiUser(HttpUser):
-    wait_time = between(1, 5)
-    
-    @task(3)
+    wait_time = between(1, 2)
+
+    @task(2)
     def get_homepage(self):
         self.client.get("/")
-    
-    @task(2)
+
+    @task(1)
     def get_health(self):
         self.client.get("/health")
-    
+
     @task(1)
     def get_ready(self):
         self.client.get("/ready")
-    
+
     @task(1)
     def post_data(self):
         self.client.post("/api/data", json={"key": "value"})
@@ -261,17 +286,29 @@ class QEApiUser(HttpUser):
 
 **Run Locust Locally:**
 
-```bash
-cd ai/sre-engineering/module-5-load-testing/locust-tests
-
-# Install locust
+**PowerShell:**
+```powershell
+# Install Locust
 pip install locust
 
-# Run locust locally (no web UI)
-locust -f locustfile.py --headless -u 50 -r 5 --run-time 1m --host https://your-app.azurewebsites.net
+# Run Locust test
+locust -f locustfile.py --headless -u 50 -r 5 --run-time 1m --host https://your-webapp.azurewebsites.net
 
-# Run with web UI
-locust -f locustfile.py --host https://your-app.azurewebsites.net
+# Run Locust with web UI
+locust -f locustfile.py --host https://your-webapp.azurewebsites.net
+# Open http://localhost:8089 in browser
+```
+
+**Bash:**
+```bash
+# Install Locust
+pip install locust
+
+# Run Locust test
+locust -f locustfile.py --headless -u 50 -r 5 --run-time 1m --host https://your-webapp.azurewebsites.net
+
+# Run Locust with web UI
+locust -f locustfile.py --host https://your-webapp.azurewebsites.net
 # Open http://localhost:8089 in browser
 ```
 
@@ -279,6 +316,23 @@ locust -f locustfile.py --host https://your-app.azurewebsites.net
 
 ## 🚀 Step 4: Create Azure Load Testing Resource
 
+**PowerShell:**
+```powershell
+# Create Azure Load Testing resource
+az load create `
+    --name alt-qe-lab `
+    --resource-group rg-qe-lab `
+    --location eastus
+
+# Verify creation
+az load show --name alt-qe-lab --resource-group rg-qe-lab --output table
+
+# Get Load Testing URL
+$ALT_URL = (az load show --name alt-qe-lab --resource-group rg-qe-lab --query properties.uri -otsv)
+Write-Host "Azure Load Testing URL: $ALT_URL"
+```
+
+**Bash:**
 ```bash
 # Create Azure Load Testing resource
 az load create \
@@ -298,13 +352,50 @@ echo "Azure Load Testing URL: $ALT_URL"
 
 ## 🚀 Step 5: Upload and Run JMeter Test via Azure Load Testing
 
+**PowerShell:**
+```powershell
+# Upload JMeter test to Azure Load Testing
+az load test create `
+    --resource-group rg-qe-lab `
+    --name load-test-qe `
+    --test-type jmeter `
+    --test-configuration @ai/sre-engineering/module-5-load-testing/jmeter-tests/load-test.jmx `
+    --display-name "QE Load Test - JMeter" `
+    --description "Load test for QE automation app"
+
+# Run the load test
+az load test-run create `
+    --resource-group rg-qe-lab `
+    --name load-test-run-1 `
+    --test-name load-test-qe `
+    --display-name "First Load Test Run" `
+    --description "Initial load test for QE application" `
+    --vuser-count 50 `
+    --duration 300
+
+# Check test run status
+az load test-run show --resource-group rg-qe-lab --name load-test-run-1 --output table
+
+# Wait for test completion
+while ($true) {
+    $status = (az load test-run show --resource-group rg-qe-lab --name load-test-run-1 --query status -otsv)
+    Write-Host "Status: $status"
+    if ($status -eq "Completed") { break }
+    Start-Sleep -Seconds 30
+}
+
+# Get test results
+az load test-run show --resource-group rg-qe-lab --name load-test-run-1 --output json
+```
+
+**Bash:**
 ```bash
 # Upload JMeter test to Azure Load Testing
 az load test create \
   --resource-group rg-qe-lab \
   --name load-test-qe \
   --test-type jmeter \
-  --test-configuration '@jmeter-tests/load-test.jmx' \
+  --test-configuration ai/sre-engineering/module-5-load-testing/jmeter-tests/load-test.jmx \
   --display-name "QE Load Test - JMeter" \
   --description "Load test for QE automation app"
 
@@ -321,7 +412,7 @@ az load test-run create \
 # Check test run status
 az load test-run show --resource-group rg-qe-lab --name load-test-run-1 --output table
 
-# Wait for completion
+# Wait for test completion
 while true; do
   STATUS=$(az load test-run show --resource-group rg-qe-lab --name load-test-run-1 --query status -otsv)
   echo "Status: $STATUS"
@@ -345,14 +436,22 @@ az load test-run show --resource-group rg-qe-lab --name load-test-run-1 --output
 - [ ] Azure Load Testing test run completed
 - [ ] Test results show response times, error rates
 - [ ] Identified performance bottlenecks
-- [ ] Load test integrated into CI/CD pipeline
+- [ ] Load test integrated into CI/CD pipelines
 
 ---
 
 ## 🔗 Next Steps
 
-Once Phase 5 is complete, proceed to **Module 6: AI for SRE (AIOps)** to learn about anomaly detection and automated remediation.
+Once Phase 5 is complete, proceed to **Module 6: AI for SRE** to learn about anomaly detection and automated remediation.
 
+**PowerShell:**
+```powershell
+cd ../module-6-ai-sre
+Get-Content README.md
+```
+
+**Bash:**
 ```bash
-cd ../module-6-ai-sre && cat README.md
+cd ../module-6-ai-sre
+cat README.md
 ```
