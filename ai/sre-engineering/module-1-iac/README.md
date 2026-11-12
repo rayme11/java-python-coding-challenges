@@ -36,6 +36,39 @@ By completing this module, you will be able to:
 
 ---
 
+## 🚀 Prerequisites
+
+Install these tools on Windows (PowerShell):
+
+```powershell
+# Install Azure CLI (winget)
+winget install Microsoft.AzureCLI
+
+# Install Terraform (winget)
+winget install HashiCorp.Terraform
+
+# Install Docker Desktop
+winget install Docker.DockerDesktop
+
+# Install kubectl
+winget install Kubernetes.kubectl
+
+# Install Helm
+winget install Helm.Helm
+
+# Verify installations
+az --version
+terraform --version
+docker --version
+kubectl version --client
+helm version
+
+# Login to Azure
+az login
+```
+
+---
+
 ## 🛠️ Step 1: Initialize Terraform
 
 ### Initialize Terraform with Azure Provider
