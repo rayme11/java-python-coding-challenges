@@ -196,3 +196,25 @@ java -cp bin enterprise.qe.QualityEngineTest
 ---
 
 *Generated for AI-Enhanced Enterprise Automation & Governance Track*
+
+---
+
+## 🚀 SRE Engineering Track: Scalability, Automation & Governance
+
+Also available: **[SRE Engineering Track](./phase-2-scalable-web-api-test-engineering/README.md)** - A comprehensive training path for Site Reliability Engineering covering:
+
+| Module | Title | Focus | Technologies |
+|--------|-------|-------|--------------|
+| Module 1 | Infrastructure as Code | Terraform, Bicep, Azure Resources | Terraform, Bicep, Azure CLI |
+| Module 2 | Containers | Docker, Kubernetes/AKS | Docker, kubectl, Helm |
+| Module 3 | Scaling & Autoscaling | HPA, KEDA, App Service | HPA, KEDA, Azure App Service |
+| Module 4 | Monitoring & Observability | Azure Monitor, App Insights | Azure Monitor, Log Analytics |
+| Module 5 | Load Testing | Azure Load Testing, Locust, JMeter | Azure Load Testing, Locust |
+| Module 6 | AI for SRE (AIOps) | Anomaly Detection, Auto-Remediation | Python, Azure ML |
+| Module 7 | CI/CD Pipelines | GitHub Actions for SRE | GitHub Actions, Terraform |
+
+**Start here:** [`ai/sre-engineering/README.md`](ai/sre-engineering/README.md)
+
+---
+
+*Generated for AI-Enhanced Enterprise Automation & Governance Track + SRE Engineering Track*
